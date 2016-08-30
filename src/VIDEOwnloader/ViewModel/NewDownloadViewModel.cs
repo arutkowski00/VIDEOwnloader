@@ -1,0 +1,396 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using GalaSoft.MvvmLight.CommandWpf;
+using MaterialDesignThemes.Wpf;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using VIDEOwnloader.Base.Video;
+using VIDEOwnloader.Common;
+using VIDEOwnloader.DataService;
+using VIDEOwnloader.Model;
+using VIDEOwnloader.View.Dialog;
+
+namespace VIDEOwnloader.ViewModel
+{
+    public class NewDownloadViewModel : ValidationViewModelBase
+    {
+        public const bool TestPlaylist = true;
+
+        public NewDownloadViewModel(IDataService dataService)
+        {
+            DataService = dataService;
+
+            if (IsInDesignMode)
+            {
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (TestPlaylist)
+                {
+                    DataService.GetVideoAsync(null, async (res, ex) =>
+                    {
+                        var playlist = new VideoPlaylist(res.Playlists.First());
+
+                        await playlist[0].FillAsync(DataService);
+                        playlist.SetFormat(playlist[0].Formats.OrderByDescending(x => x.Filesize).First());
+                        playlist[1].IsFilling = true;
+
+                        ResultItem = playlist;
+                    }).Wait();
+                    VideoSavePath = @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\";
+                }
+                else
+#pragma warning disable 162
+                {
+                    DataService.GetVideoAsync(null, (res, ex) =>
+                    {
+                        var random = new Random();
+                        ResultItem = res.Videos.First();
+                    }).Wait();
+                    VideoSavePath =
+                        @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\The Big Short 2015 1080p BluRay x264 DTS-JYK.mkv";
+                }
+#pragma warning restore 162
+            }
+        }
+
+        public IDataService DataService { get; }
+
+        public IEnumerable<VideoFormat> AvailableFormats
+        {
+            get
+            {
+                if (ResultItem == null)
+                    return null;
+
+                IEnumerable<VideoFormat> formats;
+                if (ResultItem is Video)
+                    formats = ((Video)ResultItem).Formats;
+                else if (ResultItem is VideoPlaylist)
+                    formats = ((VideoPlaylist)ResultItem).Where(x => x.Formats != null)
+                        .SelectMany(x => x.Formats).DistinctBy(x => x.FormatId);
+                else return null;
+
+                return from f in formats
+                    where f.AudioOnly || f.HasAudioAndVideo
+                    orderby f.Width*f.Height + f.Abr descending
+                    select f;
+            }
+        }
+
+        public bool InvalidUrl
+        {
+            get { return Get(() => InvalidUrl); }
+            set
+            {
+                Set(() => InvalidUrl, value);
+                if (value)
+                    AddError("Invalid URL.", () => Url);
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        public bool IsProcessing
+        {
+            get { return Get(() => IsProcessing); }
+            set { Set(() => IsProcessing, value); }
+        }
+
+        public bool NoResultFound
+        {
+            get { return Get(() => NoResultFound); }
+            set
+            {
+                Set(() => NoResultFound, value);
+                if (value)
+                    AddError("No result found.", () => Url);
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        public bool NoResultItem => ResultItem == null;
+
+        public IVideoInfoResultItem ResultItem
+        {
+            get { return Get(() => ResultItem); }
+            set
+            {
+                Set(() => ResultItem, value);
+                RaisePropertyChanged(() => NoResultItem);
+                RaisePropertyChanged(() => AvailableFormats);
+                VideoSavePath = null;
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        public string Url
+        {
+            get { return Get(() => Url); }
+            set
+            {
+                Set(() => Url, value);
+
+                ClearErrors();
+                if (string.IsNullOrEmpty(Url))
+                    AddError("Field is required.");
+                else if (!Url.IsValidUrl())
+                    AddError("Invalid URL.");
+
+                if (ResultItem != null)
+                    ResultItem = null;
+                if (NoResultFound)
+                    NoResultFound = false;
+                if (InvalidUrl)
+                    InvalidUrl = false;
+            }
+        }
+
+        public string VideoFilename
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(VideoSavePath))
+                    return string.Empty;
+                if (ResultItem is Video)
+                    return Path.GetFileName(VideoSavePath);
+                return VideoSavePath;
+            }
+        }
+
+        public VideoFormat VideoFormat
+        {
+            get { return Get(() => VideoFormat); }
+            set
+            {
+                Set(() => VideoFormat, value);
+                (ResultItem as VideoPlaylist)?.SetFormat(value);
+                RaisePropertyChanged(() => VideoSavePath);
+            }
+        }
+
+        public string VideoSavePath
+        {
+            get { return Get(() => VideoSavePath); }
+            set
+            {
+                Set(() => VideoSavePath, value);
+                RaisePropertyChanged(() => VideoFilename);
+            }
+        }
+
+        public RelayCommand<bool> CloseDialogCommand
+        {
+            get
+            {
+                return Get(() => CloseDialogCommand, new RelayCommand<bool>(
+                    isSuccess =>
+                    {
+                        if (isSuccess)
+                            if (ResultItem is Video)
+                            {
+                                var downloadItem = new VideoDownloadItem((Video)ResultItem, VideoFormat, VideoSavePath);
+                                MessengerInstance.Send(downloadItem);
+                            }
+                            else if (ResultItem is VideoPlaylist)
+                            {
+                                // TODO: playlist send
+                                //PlaylistDownloadItem downloadItem = new PlaylistDownloadItem();
+                                //MessengerInstance.Send(downloadItem);
+                            }
+
+                        ResultItem = null;
+                        DialogHost.CloseDialogCommand.Execute(isSuccess, null);
+                    },
+                    isSuccess => !isSuccess || ((ResultItem != null) && !HasErrors)));
+            }
+        }
+
+        public RelayCommand GetVideoInfoCommand
+        {
+            get
+            {
+                return Get(() => GetVideoInfoCommand, new RelayCommand(
+                    async () =>
+                    {
+                        IsProcessing = true;
+                        await LoadVideoInfo(true);
+                        IsProcessing = false;
+                    },
+                    () => !HasErrors));
+            }
+        }
+
+        public RelayCommand LoadedCommand
+        {
+            get
+            {
+                return Get(() => LoadedCommand, new RelayCommand(
+                    async () =>
+                    {
+                        IsProcessing = true;
+                        if (Clipboard.ContainsText())
+                        {
+                            var clipboardText = Clipboard.GetText();
+                            if (await IsValidVideoUrl(Clipboard.GetText()))
+                            {
+                                Url = clipboardText;
+                                await LoadVideoInfo(false);
+                            }
+                        }
+                        IsProcessing = false;
+                    }));
+            }
+        }
+
+
+        public RelayCommand ChooseSavePathCommand
+        {
+            get
+            {
+                return Get(() => ChooseSavePathCommand, new RelayCommand(
+                    () =>
+                    {
+                        if (ResultItem == null)
+                            return;
+                        if (ResultItem is Video)
+                        {
+                            var video = (Video)ResultItem;
+                            var saveDialog = new CommonSaveFileDialog
+                            {
+                                DefaultFileName = MakeValidFileName(video.Title),
+                                DefaultDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                                Title = "Choose media file save location"
+                            };
+                            saveDialog.Filters.Add(new CommonFileDialogFilter(VideoFormat.Description,
+                                VideoFormat.Extension));
+                            var result = saveDialog.ShowDialog(Application.Current.MainWindow);
+                            if (result == CommonFileDialogResult.Ok)
+                                VideoSavePath = saveDialog.FileName;
+                        }
+                        else if (ResultItem is VideoPlaylist)
+                        {
+                            var openFolderDialog = new CommonOpenFileDialog
+                            {
+                                DefaultDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                                IsFolderPicker = true,
+                                Title = "Choose playlist save location"
+                            };
+                            var result = openFolderDialog.ShowDialog(Application.Current.MainWindow);
+                            if (result == CommonFileDialogResult.Ok)
+                                VideoSavePath = openFolderDialog.FileName;
+                        }
+                    }));
+            }
+        }
+
+        private async Task<bool> IsValidVideoUrl(string url)
+        {
+            if (!url.IsValidUrl())
+                return false;
+
+            var isValid = false;
+            await DataService.GetValidAsync(url, (res, ex) =>
+            {
+                if (ex != null)
+                    isValid = false;
+                else if (res.ValidationResults.Length > 0)
+                    isValid = res.ValidationResults[0].IsValid;
+            });
+
+            return isValid;
+        }
+
+        private async Task LoadVideoInfo(bool validateUrl)
+        {
+            Exception getVideosException = null;
+            await DialogHost.Show(new WaitDialog(), "NewDownloadDialogHost",
+                (DialogOpenedEventHandler)(async (sender, e) =>
+                {
+                    if (validateUrl)
+                        if (!await IsValidVideoUrl(Url))
+                        {
+                            InvalidUrl = true;
+                            e.Session.Close();
+                            return;
+                        }
+
+                    await DataService.GetVideoAsync(Url, (res, ex) =>
+                    {
+                        if (ex != null)
+                            getVideosException = ex;
+                        else if (res.Videos.Length > 0)
+                        {
+                            ResultItem = res.Videos[0];
+                            VideoFormat = AvailableFormats.First();
+                            // Set default save path
+                            if (ResultItem != null)
+                            {
+                                var fileName = MakeValidFileName(ResultItem.Title);
+                                VideoSavePath =
+                                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                                        $"{fileName}.{VideoFormat.Extension}");
+                            }
+                        }
+                        else if (res.Playlists.Length > 0)
+                        {
+                            // ResultItem = new VideoPlaylist(res.Playlists[0]);
+                            // VideoSavePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), MakeValidFileName(ResultItem.Title));
+                            ResultItem = null;
+                            var noPlaylistsDialog = new MessageDialog
+                            {
+                                Title = "Error",
+                                Message = "Playlists are not supported yet.",
+                                DialogButton = MessageDialogButton.Ok,
+                                MaxWidth = 480
+                            };
+                            AddError("Playlists are not supported yet.", () => Url);
+                        }
+                        else
+                        {
+                            ResultItem = null;
+                            NoResultFound = true;
+                        }
+                    });
+                    e.Session.Close();
+                }));
+
+            if (getVideosException != null)
+            {
+                await ShowExceptionDialog(getVideosException, "Loading video info failed!");
+                AddError("An error occured.", () => Url);
+                return;
+            }
+
+            if (ResultItem is VideoPlaylist)
+            {
+                await ((VideoPlaylist)ResultItem).FillItemsInfo(DataService);
+                RaisePropertyChanged(() => AvailableFormats);
+            }
+
+            if (AvailableFormats != null)
+                VideoFormat = AvailableFormats.FirstOrDefault();
+        }
+
+        private async Task ShowExceptionDialog(Exception exc, string title)
+        {
+            await DialogHost.Show(new MessageDialog
+            {
+                Title = title,
+                Message = exc.GetFullMessage(),
+                DialogButton = MessageDialogButton.Close,
+                MaxWidth = 480
+            }, "NewDownloadDialogHost");
+        }
+
+        private static string MakeValidFileName(string name)
+        {
+            var invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
+            var invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
+
+            return Regex.Replace(name, invalidRegStr, "_");
+        }
+    }
+}

@@ -1,0 +1,149 @@
+﻿<UserControl x:Class="VIDEOwnloader.View.DownloadsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:model="clr-namespace:VIDEOwnloader.Model"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:mvvmLight="http://www.galasoft.ch/mvvmlight"
+             DataContext="{Binding Source={StaticResource Locator}, Path=Downloads}"
+             Style="{StaticResource MaterialDesignControlStyle}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="500">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="DownloadItemTemplate" DataType="{x:Type model:VideoDownloadItem}">
+            <Border Padding="8" BorderThickness="0 0 0 1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="Thumbnails" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar Style="{DynamicResource MaterialDesignCircularProgressBar}"
+                                 Value="{Binding ProgressValue, Mode=OneWay}" Maximum="1" LargeChange="0.1"
+                                 SmallChange="0.01" Foreground="{DynamicResource Primary900Brush}" Height="38"
+                                 Width="38" Margin="-2" />
+                    <ToggleButton Grid.Column="0" ToolTip="Pause/resume" x:Name="pauseToggleButton"
+                                  VerticalAlignment="Center"
+                                  IsChecked="False" Style="{DynamicResource MaterialDesignActionAccentToggleButton}"
+                                  Foreground="{DynamicResource Primary400ForegroundBrush}">
+                        <material:ToggleButtonAssist.OnContent>
+                            <material:PackIcon x:Name="pausePackIcon" Kind="Play" />
+                        </material:ToggleButtonAssist.OnContent>
+                        <ToggleButton.Content>
+                            <Grid>
+                                <Image Source="{Binding Video.Thumbnail}" Stretch="UniformToFill" />
+                                <Grid x:Name="pauseToggleButtonOverlay" Opacity="0">
+                                    <Grid.Triggers>
+                                        <EventTrigger RoutedEvent="UIElement.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimationUsingKeyFrames
+                                                        Storyboard.TargetProperty="(UIElement.Opacity)"
+                                                        Storyboard.TargetName="pauseToggleButtonOverlay">
+                                                        <EasingDoubleKeyFrame KeyTime="0" Value="0" />
+                                                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1" />
+                                                    </DoubleAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="UIElement.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimationUsingKeyFrames
+                                                        Storyboard.TargetProperty="(UIElement.Opacity)"
+                                                        Storyboard.TargetName="pauseToggleButtonOverlay">
+                                                        <EasingDoubleKeyFrame KeyTime="0" Value="1" />
+                                                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
+                                                    </DoubleAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Grid.Triggers>
+                                    <Border Background="{StaticResource Accent400Brush}" Opacity="0.3" />
+                                    <material:PackIcon Kind="Pause" VerticalAlignment="Center"
+                                                       HorizontalAlignment="Center" />
+                                </Grid>
+                            </Grid>
+                        </ToggleButton.Content>
+                    </ToggleButton>
+                    <StackPanel Margin="8 0 0 0" Grid.Column="1">
+                        <StackPanel x:Name="titleUploader" Orientation="Horizontal">
+                            <TextBlock x:Name="title" FontWeight="Bold" Text="{Binding Video.Title}" />
+                            <TextBlock x:Name="uploader" Style="{DynamicResource MaterialDesignCaptionTextBlock}"
+                                       FontSize="14" FontWeight="Light">
+                                <Run Text=" by" />
+                                <Run Text="{Binding Video.Uploader}" />
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock Text="{Binding StatusText}" TextTrimming="WordEllipsis" />
+                    </StackPanel>
+                    <Button x:Name="stopButton" Grid.Column="2" Margin="5,0,0,0"
+                            material:RippleAssist.ClipToBounds="True"
+                            Command="{Binding Source={StaticResource Locator}, Path=Downloads.StopDownloadCommand}"
+                            CommandParameter="{Binding Mode=OneWay}"
+                            Style="{DynamicResource MaterialDesignToolButton}"
+                            Visibility="{Binding CanBeCancelled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            HorizontalAlignment="Right" Foreground="{DynamicResource Primary700Brush}" ToolTip="Cancel">
+                        <material:PackIcon Kind="StopCircleOutline" />
+                    </Button>
+                    <Button x:Name="removeButton" Grid.Column="2" Margin="5,0,0,0"
+                            material:RippleAssist.ClipToBounds="True"
+                            Command="{Binding Source={StaticResource Locator}, Path=Downloads.RemoveCommand}"
+                            CommandParameter="{Binding Mode=OneWay}"
+                            Style="{DynamicResource MaterialDesignToolButton}"
+                            Visibility="{Binding CanBeRemoved, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            HorizontalAlignment="Right" Foreground="Gray" ToolTip="Remove">
+                        <material:PackIcon Kind="Close" />
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <!--<i:Interaction.Triggers>
+        <i:EventTrigger>
+            <mvvmLight:EventToCommand Command="{Binding LoadedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>-->
+
+    <Grid>
+        <StackPanel ScrollViewer.VerticalScrollBarVisibility="Auto" CanVerticallyScroll="True">
+            <TextBlock Margin="38,0,32,0" DockPanel.Dock="Top" Style="{DynamicResource MaterialDesignButtonTextBlock}"
+                       Padding="0,16">
+                <Run Text="Downloading" />
+            </TextBlock>
+            <material:Card Margin="16,0,16,8"
+                           Visibility="{Binding AreItemsInDownloadList, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ItemsControl ItemsSource="{Binding DownloadList}" Grid.IsSharedSizeScope="True"
+                              ItemTemplate="{StaticResource DownloadItemTemplate}" />
+            </material:Card>
+            <TextBlock Margin="38,0,32,0" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"
+                       Visibility="{Binding IsDownloadListEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"
+                       LineHeight="21.333">
+                <Run Text="There's nothing to download." /><LineBreak /><Run Text="Add new video by pressing " />
+                <InlineUIContainer>
+                    <material:PackIcon Kind="Plus" Margin="0, -2" />
+                </InlineUIContainer>
+                <Run Text=" button." />
+            </TextBlock>
+            <StackPanel
+                Visibility="{Binding AreItemsInCompletedList, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock Margin="38,0,32,0" DockPanel.Dock="Top"
+                           Style="{DynamicResource MaterialDesignButtonTextBlock}" Padding="0,16">
+                    <Run Text="Completed" />
+                </TextBlock>
+                <material:Card Margin="16,0,16,16">
+                    <ItemsControl ItemsSource="{Binding CompletedList}" Grid.IsSharedSizeScope="True"
+                                  ItemTemplate="{StaticResource DownloadItemTemplate}" />
+                </material:Card>
+            </StackPanel>
+        </StackPanel>
+        <Button Style="{DynamicResource MaterialDesignFloatingActionDarkButton}" Command="{Binding NewDownloadCommand}"
+                VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="16">
+            <material:PackIcon Kind="Plus" Width="24" Height="24" />
+        </Button>
+    </Grid>
+</UserControl>
