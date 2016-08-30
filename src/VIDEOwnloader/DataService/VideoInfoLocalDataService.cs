@@ -50,7 +50,6 @@ namespace VIDEOwnloader.DataService
                         // First line should tell everything, so let's close the process.
                         ydlProcess.Close();
                     }
-                    ydlProcess.WaitForExit();
                 }
 
                 if (validationResult == null)
@@ -126,7 +125,7 @@ namespace VIDEOwnloader.DataService
                         //    
                         //}
                     }
-                    ydlProcess.WaitForExit();
+                    ydlProcess.Close();
                 }
                 response.Videos = videos.ToArray();
                 response.Playlists = playlists.ToArray();
