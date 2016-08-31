@@ -35,14 +35,18 @@ namespace VIDEOwnloader.ViewModel
             ServiceLocator.SetLocatorProvider(() => new UnityServiceLocator(container));
 
             if (ViewModelBase.IsInDesignModeStatic)
+            {
                 container.RegisterType<IDataService, VideoInfoDesignDataService>();
+            }
             else
+            {
 #if REST_SERVICE
                 container.RegisterType<IDataService, VideoInfoDataService>();
 #else
                 container.RegisterType<IDataService, VideoInfoLocalDataService>();
-
 #endif
+            }
+
 
             container.AddNewExtension<Interception>();
             container.RegisterType<MainViewModel>().
@@ -53,7 +57,6 @@ namespace VIDEOwnloader.ViewModel
         }
 
         public DownloadsViewModel Downloads => ServiceLocator.Current.GetInstance<DownloadsViewModel>();
-
         public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
         public NewDownloadViewModel NewDownload => ServiceLocator.Current.GetInstance<NewDownloadViewModel>();
 

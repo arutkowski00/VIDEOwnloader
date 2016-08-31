@@ -55,11 +55,10 @@
                 </DockPanel>
             </material:DrawerHost.LeftDrawerContent>
             <DockPanel>
-                <material:ColorZone Padding="10" material:ShadowAssist.ShadowDepth="Depth2"
-                                    Mode="PrimaryMid" DockPanel.Dock="Top">
+                <material:ColorZone Padding="10" material:ShadowAssist.ShadowDepth="Depth2" DockPanel.Dock="Top" Height="56" Mode="PrimaryMid">
                     <DockPanel>
-                        <ToggleButton Style="{StaticResource MaterialDesignHamburgerToggleButton}"
-                                      x:Name="MenuToggleButton" Height="36" Width="36" />
+                        <!--<ToggleButton Style="{DynamicResource MaterialDesignHamburgerToggleButton}"
+                                      x:Name="MenuToggleButton" Height="36" Width="36" />-->
                         <material:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignRightEdges"
                                            StaysOpen="False">
                             <StackPanel>
@@ -74,7 +73,6 @@
                                         <TextBlock>Settings</TextBlock>
                                     </StackPanel>
                                 </Button>
-                                <Separator />
                                 <Button>
                                     <StackPanel Orientation="Horizontal">
                                         <material:PackIcon Kind="Information" />
@@ -90,7 +88,8 @@
                             </StackPanel>
                         </material:PopupBox>
                         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22"
-                                   Margin="36,0,0,0">
+                                   Margin="24,0,0,0">
+                        <!--Margin="36,0,0,0">-->
                             VIDEOwnloader
                         </TextBlock>
                     </DockPanel>

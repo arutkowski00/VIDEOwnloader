@@ -26,7 +26,7 @@ namespace VIDEOwnloader.ViewModel
             DataService = dataService;
 
             if (IsInDesignMode)
-                DataService.GetVideoAsync(null, (res, ex) =>
+                DataService.GetVideo(null, (res, ex) =>
                 {
                     var random = new Random();
                     DownloadList =
@@ -50,7 +50,12 @@ namespace VIDEOwnloader.ViewModel
                                     {
                                         IsDownloaded = true
                                     }));
-                }).Wait();
+
+                    foreach (var downloadItem in CompletedList.Union(DownloadList))
+                    {
+                        SetDownloadItemStatusText(downloadItem);
+                    }
+                });
 
             DownloadList.CollectionChanged += (sender, e) =>
             {

@@ -19,12 +19,12 @@ namespace VIDEOwnloader.ViewModel
 {
     public class NewDownloadViewModel : ValidationViewModelBase
     {
-        public const bool TestPlaylist = true;
+        public const bool TestPlaylist = false;
 
         public NewDownloadViewModel(IDataService dataService)
         {
             DataService = dataService;
-
+#pragma warning disable 162
             if (IsInDesignMode)
             {
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
@@ -43,7 +43,7 @@ namespace VIDEOwnloader.ViewModel
                     VideoSavePath = @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\";
                 }
                 else
-#pragma warning disable 162
+
                 {
                     DataService.GetVideoAsync(null, (res, ex) =>
                     {
@@ -53,8 +53,8 @@ namespace VIDEOwnloader.ViewModel
                     VideoSavePath =
                         @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\The Big Short 2015 1080p BluRay x264 DTS-JYK.mkv";
                 }
-#pragma warning restore 162
             }
+#pragma warning restore 162
         }
 
         public IDataService DataService { get; }
