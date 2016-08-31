@@ -15,6 +15,7 @@ namespace VIDEOwnloader.ViewModel
 {
     public class DownloadsViewModel : ExtendedViewModelBase
     {
+        private const double MegabytesMultiplier = 1048576D;
         private readonly TimeSpan _updateProgressTimeSpan = new TimeSpan(0, 0, 0, 0, 500);
         private RelayCommand _newDownloadCommand;
         private RelayCommand<DownloadItem> _removeCommand;
@@ -35,8 +36,8 @@ namespace VIDEOwnloader.ViewModel
                                     new VideoDownloadItem(x, x.Formats[random.Next(0, x.Formats.Length - 1)],
                                         "test." + (x.Ext ?? "mp4"))
                                     {
-                                        DownloadedBytes = (uint)(random.NextDouble()*4 + 2)*1048576,
-                                        TotalBytes = (uint)(random.NextDouble()*10 + 8)*1048576,
+                                        DownloadedBytes = (uint)(random.NextDouble() * 4 + 2) * 1048576,
+                                        TotalBytes = (uint)(random.NextDouble() * 10 + 8) * 1048576,
                                         IsDownloading = true
                                     }));
 
@@ -102,7 +103,7 @@ namespace VIDEOwnloader.ViewModel
                                if ((item == null) || !item.CanBeRemoved) return;
                                DownloadList.Remove(item);
                                CompletedList.Remove(item);
-                           }, item => (item != null) && item.CanBeRemoved));
+                           }));
             }
         }
 
@@ -112,7 +113,7 @@ namespace VIDEOwnloader.ViewModel
             {
                 return _stopDownloadCommand
                        ?? (_stopDownloadCommand = new RelayCommand<DownloadItem>(
-                           item => item?.WebClient.CancelAsync(), item => (item != null) && item.CanBeCancelled));
+                           item => item?.WebClient.CancelAsync()));
             }
         }
 
@@ -122,6 +123,7 @@ namespace VIDEOwnloader.ViewModel
             downloadItem.WebClient.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
             downloadItem.WebClient.DownloadFileAsync(new Uri(downloadItem.VideoFormat.Url), downloadItem.Filename,
                 downloadItem);
+            downloadItem.EtaCalculator = new EtaCalculator(10, 1);
             DownloadList.Add(downloadItem);
         }
 
@@ -139,11 +141,16 @@ namespace VIDEOwnloader.ViewModel
                     if (File.Exists(videoItem.Filename))
                         File.Delete(videoItem.Filename);
                 }
+
+                if (asyncCompletedEventArgs.Error != null)
+                {
+                    var error = asyncCompletedEventArgs.Error.GetFullMessage().Decapitalize();
+                    downloadItem.StatusText = $"Error: {error}";
+                }
                 // TODO: handle playlists
                 // TODO: handle error (message dialog or state change)
 
-                if (asyncCompletedEventArgs.Cancelled)
-                    downloadItem.IsCanceled = true;
+                downloadItem.IsCanceled = true;
             }
             else
             {
@@ -161,12 +168,40 @@ namespace VIDEOwnloader.ViewModel
                 return;
             if (!downloadItem.IsDownloading)
                 downloadItem.IsDownloading = true;
+
+            downloadItem.DownloadedBytes = downloadProgressChangedEventArgs.BytesReceived;
+            downloadItem.TotalBytes = downloadProgressChangedEventArgs.TotalBytesToReceive;
+            var progressValue = (float)downloadItem.DownloadedBytes/downloadItem.TotalBytes;
+            downloadItem.ProgressValue = progressValue;
+            downloadItem.EtaCalculator?.Update(progressValue);
+
             if (DateTime.Now - downloadItem.LastStatusUpdateTime > _updateProgressTimeSpan)
             {
-                downloadItem.DownloadedBytes = downloadProgressChangedEventArgs.BytesReceived;
-                downloadItem.TotalBytes = downloadProgressChangedEventArgs.TotalBytesToReceive;
+                SetDownloadItemStatusText(downloadItem);
                 downloadItem.LastStatusUpdateTime = DateTime.Now;
             }
+        }
+
+        private void SetDownloadItemStatusText(DownloadItem downloadItem)
+        {
+            string statusText;
+            if (downloadItem.IsDownloading)
+            {
+                var progressText =
+                    $"{downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
+                if (downloadItem.EtaCalculator == null)
+                    statusText = progressText;
+                else if (downloadItem.EtaCalculator.EtaIsAvailable)
+                    statusText = progressText + $", {downloadItem.EtaCalculator.Etr.ToReadableString()}";
+                statusText = progressText + ", estimating time...";
+            }
+            else if (downloadItem.IsPaused)
+                statusText = $"Paused, {downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
+            else if (downloadItem.IsCanceled)
+                statusText = "Cancelled";
+            else statusText = downloadItem.IsDownloaded ? downloadItem.DownloadCompletedStatusText : "Preparing...";
+
+            downloadItem.StatusText = statusText;
         }
     }
 }

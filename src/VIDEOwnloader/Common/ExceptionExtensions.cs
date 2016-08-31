@@ -16,7 +16,7 @@ namespace VIDEOwnloader.Common
                 if (previousMessage != innerException.Message)
                     if (sb[sb.Length - 1] == ':')
                     {
-                        sb.Append(" " + Decapitalize(innerException.Message));
+                        sb.Append(" " + innerException.Message.Decapitalize());
                     }
                     else
                     {
@@ -33,9 +33,6 @@ namespace VIDEOwnloader.Common
             return sb.ToString();
         }
 
-        private static string Decapitalize(string value)
-        {
-            return value.Substring(0, 1).ToLower() + value.Substring(1);
-        }
+
     }
 }
