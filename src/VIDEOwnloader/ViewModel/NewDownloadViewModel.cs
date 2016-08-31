@@ -26,8 +26,6 @@ namespace VIDEOwnloader.ViewModel
             DataService = dataService;
 #pragma warning disable 162
             if (IsInDesignMode)
-            {
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (TestPlaylist)
                 {
                     DataService.GetVideoAsync(null, async (res, ex) =>
@@ -53,7 +51,6 @@ namespace VIDEOwnloader.ViewModel
                     VideoSavePath =
                         @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\The Big Short 2015 1080p BluRay x264 DTS-JYK.mkv";
                 }
-            }
 #pragma warning restore 162
         }
 
@@ -166,7 +163,9 @@ namespace VIDEOwnloader.ViewModel
             set
             {
                 Set(() => VideoFormat, value);
-                (ResultItem as VideoPlaylist)?.SetFormat(value);
+                if (ResultItem is Video)
+                    VideoSavePath = Path.ChangeExtension(VideoSavePath, value.Extension);
+                else (ResultItem as VideoPlaylist)?.SetFormat(value);
                 RaisePropertyChanged(() => VideoSavePath);
             }
         }
@@ -260,7 +259,8 @@ namespace VIDEOwnloader.ViewModel
                             var video = (Video)ResultItem;
                             var saveDialog = new CommonSaveFileDialog
                             {
-                                DefaultFileName = MakeValidFileName(video.Title),
+                                AlwaysAppendDefaultExtension = true,
+                                DefaultFileName = GetVideoFileName(),
                                 DefaultDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                                 Title = "Choose media file save location"
                             };
@@ -327,12 +327,9 @@ namespace VIDEOwnloader.ViewModel
                             VideoFormat = AvailableFormats.First();
                             // Set default save path
                             if (ResultItem != null)
-                            {
-                                var fileName = MakeValidFileName(ResultItem.Title);
                                 VideoSavePath =
                                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                                        $"{fileName}.{VideoFormat.Extension}");
-                            }
+                                        GetVideoFileName());
                         }
                         else if (res.Playlists.Length > 0)
                         {
@@ -372,6 +369,13 @@ namespace VIDEOwnloader.ViewModel
 
             if (AvailableFormats != null)
                 VideoFormat = AvailableFormats.FirstOrDefault();
+        }
+
+        private string GetVideoFileName()
+        {
+            if ((ResultItem != null) && (VideoFormat != null))
+                return MakeValidFileName($"{ResultItem.Title}_{ResultItem.Id}.{VideoFormat.Extension}");
+            return ResultItem != null ? MakeValidFileName($"{ResultItem.Title}_{ResultItem.Id}.???") : null;
         }
 
         private async Task ShowExceptionDialog(Exception exc, string title)

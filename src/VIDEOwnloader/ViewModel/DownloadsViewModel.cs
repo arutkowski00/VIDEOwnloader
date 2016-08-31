@@ -69,7 +69,7 @@ namespace VIDEOwnloader.ViewModel
             //MessengerInstance.Register<PlaylistDownloadItem>(this, HandleNewPlaylistDownload);
         }
 
-        public bool AreItemsInCompletedList => DownloadList.Count > 0;
+        public bool AreItemsInCompletedList => CompletedList.Count > 0;
         public bool AreItemsInDownloadList => DownloadList.Count > 0;
 
         [RaisePropertyChanged]
@@ -160,6 +160,7 @@ namespace VIDEOwnloader.ViewModel
             else
             {
                 downloadItem.IsDownloaded = true;
+                SetDownloadItemStatusText(downloadItem);
                 DownloadList.Remove(downloadItem);
                 CompletedList.Add(downloadItem);
             }
