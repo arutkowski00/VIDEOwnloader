@@ -25,7 +25,7 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Top" Margin="0 4 0 0" x:Name="VideoSidebar">
-                    <Grid>
+                    <Grid Margin="0 4 0 0">
                         <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Width="140" />
                         <TextBlock Background="#D5000000" Foreground="White" Margin="0 0 1 0" Padding="1 0"
                                    Text="{Binding Duration, Converter={StaticResource SecondsToTimeStringConverter}}"
@@ -33,7 +33,8 @@
                     </Grid>
                     <material:RatingBar
                         Visibility="{Binding AverageRating, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                        Margin="0 8" HorizontalAlignment="Center" Value="{Binding AverageRating, Mode=OneWay}" />
+                        Margin="0 8" HorizontalAlignment="Center" Value="{Binding AverageRating, Mode=OneWay}"
+                        Foreground="{DynamicResource Accent700Brush}" />
                     <StackPanel HorizontalAlignment="Center">
                         <StackPanel.Resources>
                             <Style TargetType="material:Chip">
@@ -64,7 +65,8 @@
                     </StackPanel>
                 </StackPanel>
                 <ScrollViewer Margin="8 0 0 0" Grid.Column="1" MinHeight="200"
-                              MaxHeight="{Binding ActualHeight, ElementName=VideoSidebar}">
+                              MaxHeight="{Binding ActualHeight, ElementName=VideoSidebar}"
+                              VerticalScrollBarVisibility="Auto">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -72,14 +74,16 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         <TextBlock x:Name="title" Grid.Row="0" Style="{DynamicResource MaterialDesignTitleTextBlock}"
-                                   FontWeight="Bold" Text="{Binding Title}" />
-                        <TextBlock x:Name="uploader" Grid.Row="1">
-                            <Run Text="Uploader:" FontWeight="Bold" />
-                            <Hyperlink NavigateUri="{Binding UploaderUrl}" ToolTip="Go to uploader's site">
+                                   Text="{Binding Title}" />
+                        <TextBlock x:Name="uploader" Grid.Row="1" Foreground="DimGray">
+                            <Hyperlink NavigateUri="{Binding UploaderUrl}" ToolTip="Go to uploader's site"
+                                       TextDecorations="{x:Null}">
+                                <Run Text="By" />
                                 <Run Text="{Binding Uploader}" />
                             </Hyperlink>
                         </TextBlock>
-                        <TextBlock Text="{Binding Description}" Grid.Row="2" />
+                        <TextBlock Text="{Binding Description}" Grid.Row="2" TextWrapping="Wrap" Margin="0,8,0,0"
+                                   TextTrimming="WordEllipsis" />
                     </Grid>
                 </ScrollViewer>
             </Grid>
