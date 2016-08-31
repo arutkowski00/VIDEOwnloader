@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:model="clr-namespace:VIDEOwnloader.Model"
+             x:Name="DownloadsViewUserControl"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:mvvmLight="http://www.galasoft.ch/mvvmlight"
              DataContext="{Binding Source={StaticResource Locator}, Path=Downloads}"
@@ -81,8 +82,8 @@
                         <TextBlock Text="{Binding StatusText}" TextTrimming="WordEllipsis" />
                     </StackPanel>
                     <Button x:Name="stopButton" Grid.Column="2" Margin="5,0,0,0"
-                            material:RippleAssist.ClipToBounds="True"
-                            Command="{Binding Source={StaticResource Locator}, Path=Downloads.StopDownloadCommand}"
+                            material:RippleAssist.IsDisabled="True"
+                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.StopDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
                             Visibility="{Binding CanBeCancelled, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -90,8 +91,8 @@
                         <material:PackIcon Kind="StopCircleOutline" />
                     </Button>
                     <Button x:Name="removeButton" Grid.Column="2" Margin="5,0,0,0"
-                            material:RippleAssist.ClipToBounds="True"
-                            Command="{Binding Source={StaticResource Locator}, Path=Downloads.RemoveCommand}"
+                            material:RippleAssist.IsDisabled="True"
+                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.RemoveCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
                             Visibility="{Binding CanBeRemoved, Converter={StaticResource BooleanToVisibilityConverter}}"
