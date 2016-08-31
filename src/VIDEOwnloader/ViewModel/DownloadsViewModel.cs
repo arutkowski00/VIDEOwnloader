@@ -128,17 +128,18 @@ namespace VIDEOwnloader.ViewModel
             downloadItem.WebClient.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
             downloadItem.WebClient.DownloadFileAsync(new Uri(downloadItem.VideoFormat.Url), downloadItem.Filename,
                 downloadItem);
-            downloadItem.EtaCalculator = new EtaCalculator(10, 1);
+            downloadItem.EtaCalculator = new EtaCalculator(2, 15);
             DownloadList.Add(downloadItem);
         }
 
-        private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs asyncCompletedEventArgs)
+        private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs args)
         {
-            var downloadItem = asyncCompletedEventArgs.UserState as DownloadItem;
+            var downloadItem = args.UserState as DownloadItem;
             if (downloadItem == null) return;
             downloadItem.IsDownloading = false;
+            downloadItem.EtaCalculator = null;
 
-            if ((asyncCompletedEventArgs.Error != null) || asyncCompletedEventArgs.Cancelled)
+            if ((args.Error != null) || args.Cancelled)
             {
                 if (downloadItem is VideoDownloadItem)
                 {
@@ -147,15 +148,17 @@ namespace VIDEOwnloader.ViewModel
                         File.Delete(videoItem.Filename);
                 }
 
-                if (asyncCompletedEventArgs.Error != null)
+                if (args.Cancelled)
                 {
-                    var error = asyncCompletedEventArgs.Error.GetFullMessage().Decapitalize();
+                    downloadItem.IsCanceled = true;
+                    SetDownloadItemStatusText(downloadItem);
+                }
+                else if (args.Error != null)
+                {
+                    var error = args.Error.GetFullMessage().Decapitalize();
                     downloadItem.StatusText = $"Error: {error}";
                 }
                 // TODO: handle playlists
-                // TODO: handle error (message dialog or state change)
-
-                downloadItem.IsCanceled = true;
             }
             else
             {
@@ -167,16 +170,16 @@ namespace VIDEOwnloader.ViewModel
         }
 
         private void WebClientOnDownloadProgressChanged(object sender,
-            DownloadProgressChangedEventArgs downloadProgressChangedEventArgs)
+            DownloadProgressChangedEventArgs args)
         {
-            var downloadItem = downloadProgressChangedEventArgs.UserState as DownloadItem;
+            var downloadItem = args.UserState as DownloadItem;
             if (downloadItem == null)
                 return;
             if (!downloadItem.IsDownloading)
                 downloadItem.IsDownloading = true;
 
-            downloadItem.DownloadedBytes = downloadProgressChangedEventArgs.BytesReceived;
-            downloadItem.TotalBytes = downloadProgressChangedEventArgs.TotalBytesToReceive;
+            downloadItem.DownloadedBytes = args.BytesReceived;
+            downloadItem.TotalBytes = args.TotalBytesToReceive;
             var progressValue = (float)downloadItem.DownloadedBytes/downloadItem.TotalBytes;
             downloadItem.ProgressValue = progressValue;
             downloadItem.EtaCalculator?.Update(progressValue);
@@ -199,7 +202,7 @@ namespace VIDEOwnloader.ViewModel
                     statusText = progressText;
                 else if (downloadItem.EtaCalculator.EtaIsAvailable)
                     statusText = progressText + $", {downloadItem.EtaCalculator.Etr.ToReadableString()}";
-                statusText = progressText + ", estimating time...";
+                else statusText = progressText + ", estimating time...";
             }
             else if (downloadItem.IsPaused)
                 statusText = $"Paused, {downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
