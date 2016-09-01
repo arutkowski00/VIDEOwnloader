@@ -22,5 +22,29 @@ namespace VIDEOwnloader.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DownloadListXml {
+            get {
+                return ((string)(this["DownloadListXml"]));
+            }
+            set {
+                this["DownloadListXml"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CompletedListXml {
+            get {
+                return ((string)(this["CompletedListXml"]));
+            }
+            set {
+                this["CompletedListXml"] = value;
+            }
+        }
     }
 }

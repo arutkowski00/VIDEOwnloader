@@ -166,6 +166,7 @@
     <Compile Include="Model\DownloadItem.cs" />
     <Compile Include="Model\VideoPlaylist.cs" />
     <Compile Include="Model\VideoPlaylistItem.cs" />
+    <Compile Include="Common\XmlTools.cs" />
     <Compile Include="ViewModel\DownloadsViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\NewDownloadViewModel.cs" />

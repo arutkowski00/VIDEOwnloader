@@ -9,6 +9,7 @@ using MaterialDesignThemes.Wpf;
 using VIDEOwnloader.Common;
 using VIDEOwnloader.DataService;
 using VIDEOwnloader.Model;
+using VIDEOwnloader.Properties;
 using VIDEOwnloader.View.Dialog;
 
 namespace VIDEOwnloader.ViewModel
@@ -16,46 +17,35 @@ namespace VIDEOwnloader.ViewModel
     public class DownloadsViewModel : ExtendedViewModelBase
     {
         private const double MegabytesMultiplier = 1048576D;
+
         private readonly TimeSpan _updateProgressTimeSpan = new TimeSpan(0, 0, 0, 0, 500);
+
+        private RelayCommand<DownloadItem> _cancelDownloadCommand;
         private RelayCommand _newDownloadCommand;
-        private RelayCommand<DownloadItem> _removeCommand;
-        private RelayCommand<DownloadItem> _stopDownloadCommand;
+        private RelayCommand<DownloadItem> _removeDownloadCommand;
 
         public DownloadsViewModel(IDataService dataService)
         {
             DataService = dataService;
-
             if (IsInDesignMode)
-                DataService.GetVideo(null, (res, ex) =>
+            {
+                SetDesignMode();
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(Settings.Default.CompletedListXml))
                 {
-                    var random = new Random();
-                    DownloadList =
-                        new ObservableCollection<DownloadItem>(
-                            res.Videos.Select(
-                                x =>
-                                    new VideoDownloadItem(x, x.Formats[random.Next(0, x.Formats.Length - 1)],
-                                        "test." + (x.Ext ?? "mp4"))
-                                    {
-                                        DownloadedBytes = (uint)(random.NextDouble() * 4 + 2) * 1048576,
-                                        TotalBytes = (uint)(random.NextDouble() * 10 + 8) * 1048576,
-                                        IsDownloading = true
-                                    }));
-
-                    CompletedList =
-                        new ObservableCollection<DownloadItem>(
-                            res.Videos.Select(
-                                x =>
-                                    new VideoDownloadItem(x, x.Formats[random.Next(0, x.Formats.Length - 1)],
-                                        "test." + (x.Ext ?? "mp4"))
-                                    {
-                                        IsDownloaded = true
-                                    }));
-
-                    foreach (var downloadItem in CompletedList.Union(DownloadList))
-                    {
-                        SetDownloadItemStatusText(downloadItem);
-                    }
-                });
+                    DownloadItem[] downloadItems;
+                    if (XmlTools.TryDeserialize(Settings.Default.CompletedListXml, out downloadItems))
+                        CompletedList = new ObservableCollection<DownloadItem>(downloadItems);
+                }
+                if (!string.IsNullOrEmpty(Settings.Default.DownloadListXml))
+                {
+                    DownloadItem[] downloadItems;
+                    if (XmlTools.TryDeserialize(Settings.Default.DownloadListXml, out downloadItems))
+                        DownloadList = new ObservableCollection<DownloadItem>(downloadItems);
+                }
+            }
 
             DownloadList.CollectionChanged += (sender, e) =>
             {
@@ -72,6 +62,9 @@ namespace VIDEOwnloader.ViewModel
         public bool AreItemsInCompletedList => CompletedList.Count > 0;
         public bool AreItemsInDownloadList => DownloadList.Count > 0;
 
+        public RelayCommand<DownloadItem> CancelDownloadCommand
+            => _cancelDownloadCommand ?? (_cancelDownloadCommand = new RelayCommand<DownloadItem>(CancelDownload));
+
         [RaisePropertyChanged]
         public ObservableCollection<DownloadItem> CompletedList { get; private set; } =
             new ObservableCollection<DownloadItem>();
@@ -85,41 +78,70 @@ namespace VIDEOwnloader.ViewModel
         public bool IsDownloadListEmpty => DownloadList.Count == 0;
 
         public RelayCommand NewDownloadCommand
+            => _newDownloadCommand ?? (_newDownloadCommand = new RelayCommand(ShowNewDownloadDialog));
+
+        public RelayCommand<DownloadItem> RemoveDownloadCommand
+            => _removeDownloadCommand ?? (_removeDownloadCommand = new RelayCommand<DownloadItem>(RemoveDownloadItem));
+
+        private void SetDesignMode()
         {
-            get
+            DataService.GetVideo(null, (res, ex) =>
             {
-                return _newDownloadCommand ?? (_newDownloadCommand = new RelayCommand(
-                           async () =>
-                           {
-                               var view = new NewDownloadDialog();
-                               await DialogHost.Show(view, "RootDialog");
-                           }));
-            }
+                var random = new Random();
+                DownloadList =
+                    new ObservableCollection<DownloadItem>(
+                        res.Videos.Select(
+                            x =>
+                                new VideoDownloadItem
+                                {
+                                    Filename = "test." + (x.Ext ?? "mp4"),
+                                    Video = x,
+                                    VideoFormat = x.Formats[random.Next(0, x.Formats.Length - 1)],
+                                    DownloadedBytes = (uint)(random.NextDouble()*4 + 2)*1048576,
+                                    TotalBytes = (uint)(random.NextDouble()*10 + 8)*1048576,
+                                    IsDownloading = true
+                                }));
+
+                CompletedList =
+                    new ObservableCollection<DownloadItem>(
+                        res.Videos.Select(
+                            x => new VideoDownloadItem
+                            {
+                                Filename = "test." + (x.Ext ?? "mp4"),
+                                Video = x,
+                                VideoFormat = x.Formats[random.Next(0, x.Formats.Length - 1)],
+                                IsDownloaded = true
+                            }));
+
+                foreach (var downloadItem in CompletedList.Union(DownloadList))
+                    SetDownloadItemStatusText(downloadItem);
+            });
         }
 
-        public RelayCommand<DownloadItem> RemoveCommand
+        ~DownloadsViewModel()
         {
-            get
+            Settings.Default.CompletedListXml = CompletedList.Count > 0
+                ? XmlTools.Serialize(CompletedList.ToArray())
+                : string.Empty;
+
+            if (DownloadList.Count > 0)
             {
-                return _removeCommand
-                       ?? (_removeCommand = new RelayCommand<DownloadItem>(
-                           item =>
-                           {
-                               if ((item == null) || !item.CanBeRemoved) return;
-                               DownloadList.Remove(item);
-                               CompletedList.Remove(item);
-                           }));
+                var downloadItems = DownloadList.ToArray();
+                foreach (var downloadItem in downloadItems)
+                {
+                    downloadItem.IsDownloading = false;
+                    downloadItem.IsCanceled = true;
+                    SetDownloadItemStatusText(downloadItem);
+                }
+                Settings.Default.DownloadListXml = XmlTools.Serialize(downloadItems);
             }
+            else Settings.Default.DownloadListXml = string.Empty;
+            Settings.Default.Save();
         }
 
-        public RelayCommand<DownloadItem> StopDownloadCommand
+        private void CancelDownload(DownloadItem item)
         {
-            get
-            {
-                return _stopDownloadCommand
-                       ?? (_stopDownloadCommand = new RelayCommand<DownloadItem>(
-                           item => item?.WebClient.CancelAsync()));
-            }
+            item?.WebClient.CancelAsync();
         }
 
         private void HandleNewVideoDownload(VideoDownloadItem downloadItem)
@@ -132,6 +154,53 @@ namespace VIDEOwnloader.ViewModel
             DownloadList.Add(downloadItem);
         }
 
+        private void RemoveDownloadItem(DownloadItem item)
+        {
+            if ((item == null) || !item.CanBeRemoved) return;
+            DownloadList.Remove(item);
+            CompletedList.Remove(item);
+        }
+
+        private void SetDownloadItemStatusText(DownloadItem downloadItem)
+        {
+            string statusText;
+            if (downloadItem.ErrorText != null)
+            {
+                statusText = $"Error: {downloadItem.ErrorText.Decapitalize()}";
+            }
+            else if (downloadItem.IsDownloading)
+            {
+                var progressText =
+                    $"{downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
+                if (downloadItem.EtaCalculator == null)
+                    statusText = progressText;
+                else if (downloadItem.EtaCalculator.EtaIsAvailable)
+                    statusText = progressText + $", {downloadItem.EtaCalculator.Etr.ToReadableString()}";
+                else statusText = progressText + ", estimating time...";
+            }
+            else if (downloadItem.IsPaused)
+            {
+                statusText =
+                    $"Paused, {downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
+            }
+            else if (downloadItem.IsCanceled)
+            {
+                statusText = "Cancelled";
+            }
+            else
+            {
+                statusText = downloadItem.IsDownloaded ? downloadItem.DownloadCompletedStatusText : "Preparing...";
+            }
+
+            downloadItem.StatusText = statusText;
+        }
+
+        private async void ShowNewDownloadDialog()
+        {
+            var view = new NewDownloadDialog();
+            await DialogHost.Show(view, "RootDialog");
+        }
+
         private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs args)
         {
             var downloadItem = args.UserState as DownloadItem;
@@ -141,32 +210,28 @@ namespace VIDEOwnloader.ViewModel
 
             if ((args.Error != null) || args.Cancelled)
             {
+                downloadItem.IsCanceled = true;
+
                 if (downloadItem is VideoDownloadItem)
                 {
                     var videoItem = (VideoDownloadItem)downloadItem;
                     if (File.Exists(videoItem.Filename))
                         File.Delete(videoItem.Filename);
                 }
-
-                if (args.Cancelled)
-                {
-                    downloadItem.IsCanceled = true;
-                    SetDownloadItemStatusText(downloadItem);
-                }
-                else if (args.Error != null)
-                {
-                    var error = args.Error.GetFullMessage().Decapitalize();
-                    downloadItem.StatusText = $"Error: {error}";
-                }
                 // TODO: handle playlists
+
+                if (args.Error != null)
+                {
+                    downloadItem.ErrorText = args.Error.GetFullMessage();
+                }
             }
             else
             {
                 downloadItem.IsDownloaded = true;
-                SetDownloadItemStatusText(downloadItem);
                 DownloadList.Remove(downloadItem);
                 CompletedList.Add(downloadItem);
             }
+            SetDownloadItemStatusText(downloadItem);
         }
 
         private void WebClientOnDownloadProgressChanged(object sender,
@@ -189,28 +254,6 @@ namespace VIDEOwnloader.ViewModel
                 SetDownloadItemStatusText(downloadItem);
                 downloadItem.LastStatusUpdateTime = DateTime.Now;
             }
-        }
-
-        private void SetDownloadItemStatusText(DownloadItem downloadItem)
-        {
-            string statusText;
-            if (downloadItem.IsDownloading)
-            {
-                var progressText =
-                    $"{downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
-                if (downloadItem.EtaCalculator == null)
-                    statusText = progressText;
-                else if (downloadItem.EtaCalculator.EtaIsAvailable)
-                    statusText = progressText + $", {downloadItem.EtaCalculator.Etr.ToReadableString()}";
-                else statusText = progressText + ", estimating time...";
-            }
-            else if (downloadItem.IsPaused)
-                statusText = $"Paused, {downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
-            else if (downloadItem.IsCanceled)
-                statusText = "Cancelled";
-            else statusText = downloadItem.IsDownloaded ? downloadItem.DownloadCompletedStatusText : "Preparing...";
-
-            downloadItem.StatusText = statusText;
         }
     }
 }

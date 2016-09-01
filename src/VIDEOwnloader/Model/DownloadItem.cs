@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Xml.Serialization;
 using GalaSoft.MvvmLight;
 using VIDEOwnloader.Base.Video;
 using VIDEOwnloader.Common;
@@ -13,38 +14,31 @@ namespace VIDEOwnloader.Model
         string Url { get; set; }
     }
 
+    [Serializable]
     public class PlaylistDownloadItem : DownloadItem
     {
-        public PlaylistDownloadItem(string savePath, Playlist playlist)
-        {
-            Playlist = playlist;
-            SavePath = savePath;
-        }
-
         public override string DownloadCompletedStatusText => $"Saved in {Path.GetFullPath(SavePath)}";
 
-        public Playlist Playlist { get; }
+        public Playlist Playlist { get; set; }
 
-        public string SavePath { get; }
+        public string SavePath { get; set; }
     }
 
+    [Serializable]
     public class VideoDownloadItem : DownloadItem
     {
-        public VideoDownloadItem(Video video, VideoFormat videoFormat, string filename)
-        {
-            Filename = Path.GetFullPath(filename);
-            Video = video;
-            VideoFormat = videoFormat;
-        }
-
         public override string DownloadCompletedStatusText => $"Saved as {Path.GetFileName(Filename)}";
 
-        public string Filename { get; }
+        public string Filename { get; set; }
 
-        public Video Video { get; }
-        public VideoFormat VideoFormat { get; }
+        public Video Video { get; set; }
+
+        public VideoFormat VideoFormat { get; set; }
     }
 
+    [XmlInclude(typeof(PlaylistDownloadItem))]
+    [XmlInclude(typeof(VideoDownloadItem))]
+    [Serializable]
     public abstract class DownloadItem : ObservableObject
     {
         private long _downloadedBytes;
@@ -56,8 +50,10 @@ namespace VIDEOwnloader.Model
         private string _statusText;
         private long _totalSize;
 
+        [XmlIgnore]
         public bool CanBeCancelled => IsDownloading || IsPaused;
 
+        [XmlIgnore]
         public bool CanBeRemoved => IsCanceled || IsDownloaded;
 
         public abstract string DownloadCompletedStatusText { get; }
@@ -68,7 +64,10 @@ namespace VIDEOwnloader.Model
             set { Set(ref _downloadedBytes, value); }
         }
 
-        public EtaCalculator EtaCalculator { get; set; }
+        [XmlIgnore]
+        public IEtaCalculator EtaCalculator { get; set; }
+
+        public string ErrorText { get; set; }
 
         public bool IsCanceled
         {
@@ -76,11 +75,6 @@ namespace VIDEOwnloader.Model
             set
             {
                 Set(ref _isCanceled, value);
-                if (_isDownloading)
-                    _isDownloading = false;
-                if (_isPaused)
-                    _isPaused = false;
-                EtaCalculator = null;
                 RaisePropertyChanged(() => CanBeRemoved);
             }
         }
@@ -91,11 +85,6 @@ namespace VIDEOwnloader.Model
             set
             {
                 Set(ref _isDownloaded, value);
-                if (_isDownloading)
-                    _isDownloading = false;
-                if (_isPaused)
-                    _isPaused = false;
-                EtaCalculator = null;
                 RaisePropertyChanged(() => CanBeRemoved);
             }
         }
@@ -116,8 +105,6 @@ namespace VIDEOwnloader.Model
             set
             {
                 Set(ref _isPaused, value);
-                _isDownloading = !_isPaused;
-                EtaCalculator?.Reset();
                 RaisePropertyChanged(() => CanBeCancelled);
             }
         }
@@ -142,6 +129,7 @@ namespace VIDEOwnloader.Model
             set { Set(ref _totalSize, value); }
         }
 
+        [XmlIgnore]
         public WebClient WebClient { get; set; } = new WebClient();
     }
 }

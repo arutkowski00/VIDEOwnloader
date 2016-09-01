@@ -83,7 +83,7 @@
                     </StackPanel>
                     <Button x:Name="stopButton" Grid.Column="2" Margin="5,0,0,0"
                             material:RippleAssist.IsDisabled="True"
-                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.StopDownloadCommand}"
+                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.CancelDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
                             Visibility="{Binding CanBeCancelled, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -92,7 +92,7 @@
                     </Button>
                     <Button x:Name="removeButton" Grid.Column="2" Margin="5,0,0,0"
                             material:RippleAssist.IsDisabled="True"
-                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.RemoveCommand}"
+                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.RemoveDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
                             Visibility="{Binding CanBeRemoved, Converter={StaticResource BooleanToVisibilityConverter}}"
