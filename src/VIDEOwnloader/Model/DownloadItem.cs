@@ -54,6 +54,9 @@ namespace VIDEOwnloader.Model
         public bool CanBeCancelled => IsDownloading || IsPaused;
 
         [XmlIgnore]
+        public bool CanBePaused => false; // TODO: add pause support
+
+        [XmlIgnore]
         public bool CanBeRemoved => IsCanceled || IsDownloaded;
 
         public abstract string DownloadCompletedStatusText { get; }

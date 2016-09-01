@@ -25,6 +25,9 @@ namespace VIDEOwnloader.ViewModel
         {
             DataService = dataService;
 #pragma warning disable 162
+            // ReSharper disable HeuristicUnreachableCode
+            // ReSharper disable ConditionIsAlwaysTrueOrFalse
+            // ReSharper disable once InvertIf
             if (IsInDesignMode)
                 if (TestPlaylist)
                 {
@@ -38,19 +41,16 @@ namespace VIDEOwnloader.ViewModel
 
                         ResultItem = playlist;
                     }).Wait();
-                    VideoSavePath = @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\";
+                    VideoSavePath = @"C:\test_movie.webm";
                 }
                 else
-
                 {
-                    DataService.GetVideoAsync(null, (res, ex) =>
-                    {
-                        var random = new Random();
-                        ResultItem = res.Videos.First();
-                    }).Wait();
+                    DataService.GetVideoAsync(null, (res, ex) => { ResultItem = res.Videos.First(); }).Wait();
                     VideoSavePath =
-                        @"D:\Pobrane\The Big Short 2015 1080p BluRay x264 DTS-JYK\The Big Short 2015 1080p BluRay x264 DTS-JYK.mkv";
+                        @"C:\test_movie.webm";
                 }
+            // ReSharper restore HeuristicUnreachableCode
+            // ReSharper restore ConditionIsAlwaysTrueOrFalse
 #pragma warning restore 162
         }
 
@@ -261,7 +261,6 @@ namespace VIDEOwnloader.ViewModel
                             return;
                         if (ResultItem is Video)
                         {
-                            var video = (Video)ResultItem;
                             var saveDialog = new CommonSaveFileDialog
                             {
                                 AlwaysAppendDefaultExtension = true,
@@ -341,13 +340,6 @@ namespace VIDEOwnloader.ViewModel
                             // ResultItem = new VideoPlaylist(res.Playlists[0]);
                             // VideoSavePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), MakeValidFileName(ResultItem.Title));
                             ResultItem = null;
-                            var noPlaylistsDialog = new MessageDialog
-                            {
-                                Title = "Error",
-                                Message = "Playlists are not supported yet.",
-                                DialogButton = MessageDialogButton.Ok,
-                                MaxWidth = 480
-                            };
                             AddError("Playlists are not supported yet.", () => Url);
                         }
                         else
