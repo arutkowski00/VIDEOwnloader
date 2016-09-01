@@ -1,14 +1,13 @@
+<!-- ReSharper disable once InconsistentNaming -->
 <Application x:Class="VIDEOwnloader.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:VIDEOwnloader"
              StartupUri="MainWindow.xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              d1p1:Ignorable="d"
              xmlns:d1p1="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialConverters="clr-namespace:MaterialDesignThemes.Wpf.Converters;assembly=MaterialDesignThemes.Wpf"
-             xmlns:converter="clr-namespace:VIDEOwnloader.Converter"
-             xmlns:mvvmLight="clr-namespace:GalaSoft.MvvmLight;assembly=GalaSoft.MvvmLight">
+             xmlns:converter="clr-namespace:VIDEOwnloader.Converter">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -34,6 +33,8 @@
                     Source="pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Fonts.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Flyout.xaml" />
+
+                <ResourceDictionary Source="Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <Style x:Key="MaterialDesignControlStyle" TargetType="Control">
@@ -101,6 +102,8 @@
             <materialConverters:NotConverter x:Key="NotConverter" />
             <materialConverters:NullableToVisibilityConverter x:Key="NullableToVisibilityConverter" />
             <materialConverters:NotZeroToVisibilityConverter x:Key="NotZeroToVisibilityConverter" />
+            <materialConverters:MathConverter x:Key="DivisionMathConverter" Operation="Divide" />
+            <materialConverters:PointValueConverter x:Key="PointValueConverter" />
             <converter:BytesToSizeStringConverter x:Key="BytesToSizeStringConverter" />
             <converter:IndexConverter x:Key="IndexConverter" />
             <converter:MultiVisibilityConverter x:Key="MultiVisibilityConverter" />

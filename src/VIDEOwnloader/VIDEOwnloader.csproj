@@ -148,6 +148,7 @@
     <Compile Include="Common\IEnumerableExtension.cs" />
     <Compile Include="Common\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Common\StringExtensions.cs" />
+    <Compile Include="Controls\PauseButton.cs" />
     <Compile Include="Converter\IndexConverter.cs" />
     <Compile Include="Converter\MultiVisibilityConverter.cs" />
     <Compile Include="Converter\NotNullOrEmptyToVisibilityConverter.cs" />
@@ -195,6 +196,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="View\Dialog\MessageDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

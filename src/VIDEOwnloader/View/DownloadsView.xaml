@@ -8,6 +8,7 @@
              x:Name="DownloadsViewUserControl"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:mvvmLight="http://www.galasoft.ch/mvvmlight"
+             xmlns:controls="clr-namespace:VIDEOwnloader.Controls"
              DataContext="{Binding Source={StaticResource Locator}, Path=Downloads}"
              Style="{StaticResource MaterialDesignControlStyle}"
              mc:Ignorable="d"
@@ -26,50 +27,14 @@
                                  Value="{Binding ProgressValue, Mode=OneWay}" Maximum="1" LargeChange="0.1"
                                  SmallChange="0.01" Foreground="{DynamicResource Primary900Brush}" Height="38"
                                  Width="38" Margin="-2" />
-                    <ToggleButton Grid.Column="0" ToolTip="Pause/resume" x:Name="pauseToggleButton"
-                                  VerticalAlignment="Center"
-                                  IsChecked="False" Style="{DynamicResource MaterialDesignActionAccentToggleButton}"
+                    <controls:PauseButton Grid.Column="0" ToolTip="Pause/Resume" x:Name="PauseToggleButton"
+                                  VerticalAlignment="Center" IsEnabled="{Binding CanBePaused}"
+                                  IsChecked="False" Style="{StaticResource PauseButtonStyle}"
                                   Foreground="{DynamicResource Primary400ForegroundBrush}">
-                        <material:ToggleButtonAssist.OnContent>
-                            <material:PackIcon x:Name="pausePackIcon" Kind="Play" />
-                        </material:ToggleButtonAssist.OnContent>
-                        <ToggleButton.Content>
-                            <Grid>
-                                <Image Source="{Binding Video.Thumbnail}" Stretch="UniformToFill" />
-                                <Grid x:Name="pauseToggleButtonOverlay" Opacity="0">
-                                    <Grid.Triggers>
-                                        <EventTrigger RoutedEvent="UIElement.MouseEnter">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimationUsingKeyFrames
-                                                        Storyboard.TargetProperty="(UIElement.Opacity)"
-                                                        Storyboard.TargetName="pauseToggleButtonOverlay">
-                                                        <EasingDoubleKeyFrame KeyTime="0" Value="0" />
-                                                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1" />
-                                                    </DoubleAnimationUsingKeyFrames>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                        <EventTrigger RoutedEvent="UIElement.MouseLeave">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimationUsingKeyFrames
-                                                        Storyboard.TargetProperty="(UIElement.Opacity)"
-                                                        Storyboard.TargetName="pauseToggleButtonOverlay">
-                                                        <EasingDoubleKeyFrame KeyTime="0" Value="1" />
-                                                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
-                                                    </DoubleAnimationUsingKeyFrames>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Grid.Triggers>
-                                    <Border Background="{StaticResource Accent400Brush}" Opacity="0.3" />
-                                    <material:PackIcon Kind="Pause" VerticalAlignment="Center"
-                                                       HorizontalAlignment="Center" />
-                                </Grid>
-                            </Grid>
-                        </ToggleButton.Content>
-                    </ToggleButton>
+                        <controls:PauseButton.Content>
+                            <Image Source="{Binding Video.Thumbnail}" Stretch="UniformToFill" />
+                        </controls:PauseButton.Content>
+                    </controls:PauseButton>
                     <StackPanel Margin="8 0 0 0" Grid.Column="1">
                         <StackPanel x:Name="titleUploader" Orientation="Horizontal">
                             <TextBlock x:Name="title" FontWeight="Bold" Text="{Binding Video.Title}" />
@@ -81,26 +46,32 @@
                         </StackPanel>
                         <TextBlock Text="{Binding StatusText}" TextTrimming="WordEllipsis" />
                     </StackPanel>
-                    <Button x:Name="stopButton" Grid.Column="2" Margin="5,0,0,0"
+                    <Button x:Name="StopButton" Grid.Column="2" Margin="5,0,0,0"
                             material:RippleAssist.IsDisabled="True"
                             Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.CancelDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
-                            Visibility="{Binding CanBeCancelled, Converter={StaticResource BooleanToVisibilityConverter}}"
                             HorizontalAlignment="Right" Foreground="{DynamicResource Primary700Brush}" ToolTip="Cancel">
                         <material:PackIcon Kind="StopCircleOutline" />
                     </Button>
-                    <Button x:Name="removeButton" Grid.Column="2" Margin="5,0,0,0"
+                    <Button x:Name="RemoveButton" Grid.Column="2" Margin="5,0,0,0"
                             material:RippleAssist.IsDisabled="True"
                             Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.RemoveDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
-                            Visibility="{Binding CanBeRemoved, Converter={StaticResource BooleanToVisibilityConverter}}"
                             HorizontalAlignment="Right" Foreground="Gray" ToolTip="Remove">
                         <material:PackIcon Kind="Close" />
                     </Button>
                 </Grid>
             </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding CanBeCancelled}" Value="False">
+                    <Setter TargetName="StopButton" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CanBeRemoved}" Value="False">
+                    <Setter TargetName="RemoveButton" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
     </UserControl.Resources>
 

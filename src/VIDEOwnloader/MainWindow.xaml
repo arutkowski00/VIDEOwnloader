@@ -3,13 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VIDEOwnloader"
-        xmlns:metro="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:model="clr-namespace:VIDEOwnloader.Model"
         xmlns:view="clr-namespace:VIDEOwnloader.View"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        xmlns:Custom="http://www.galasoft.ch/mvvmlight"
         mc:Ignorable="d"
         DataContext="{Binding Main, Source={StaticResource Locator}}"
         WindowStartupLocation="CenterScreen"
@@ -26,7 +22,7 @@
         <material:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
             <material:DrawerHost.LeftDrawerContent>
                 <DockPanel MinWidth="270">
-                    <ToggleButton Style="{StaticResource MaterialDesignHamburgerToggleButton}"
+                    <ToggleButton Style="{DynamicResource MaterialDesignHamburgerToggleButton}"
                                   DockPanel.Dock="Top"
                                   HorizontalAlignment="Right" Margin="10"
                                   IsChecked="{Binding ElementName=MenuToggleButton, Path=IsChecked, Mode=TwoWay}"
