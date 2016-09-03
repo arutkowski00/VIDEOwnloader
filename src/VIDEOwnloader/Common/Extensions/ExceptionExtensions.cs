@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace VIDEOwnloader.Common
+namespace VIDEOwnloader.Common.Extensions
 {
     public static class ExceptionExtensions
     {

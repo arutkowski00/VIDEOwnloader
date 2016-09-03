@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VIDEOwnloader.Base.Video;
 using VIDEOwnloader.Common;
-using VIDEOwnloader.DataService;
+using VIDEOwnloader.Services.DataService;
 
 namespace VIDEOwnloader.Model
 {

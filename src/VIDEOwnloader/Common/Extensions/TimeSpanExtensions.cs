@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
-namespace VIDEOwnloader.Common
+namespace VIDEOwnloader.Common.Extensions
 {
-    public static class TimeSpanExtension
+    public static class TimeSpanExtensions
     {
+        [SuppressMessage("ReSharper", "UseStringInterpolation")]
         public static string ToReadableString(this TimeSpan span)
         {
             var formatted = string.Format("{0}{1}{2}{3}",

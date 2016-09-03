@@ -11,8 +11,9 @@ using MaterialDesignThemes.Wpf;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using VIDEOwnloader.Base.Video;
 using VIDEOwnloader.Common;
-using VIDEOwnloader.DataService;
+using VIDEOwnloader.Common.Extensions;
 using VIDEOwnloader.Model;
+using VIDEOwnloader.Services.DataService;
 using VIDEOwnloader.View.Dialog;
 
 namespace VIDEOwnloader.ViewModel
@@ -71,10 +72,9 @@ namespace VIDEOwnloader.ViewModel
                         .SelectMany(x => x.Formats).DistinctBy(x => x.FormatId);
                 else return null;
 
-                return from f in formats
-                    where f.AudioOnly || f.HasAudioAndVideo
-                    orderby f.Width*f.Height + f.Abr descending
-                    select f;
+                return formats.Where(f => f.AudioOnly || f.HasAudioAndVideo)
+                    .OrderByDescending(f => f.Width*f.Height)
+                    .ThenByDescending(f => f.Abr);
             }
         }
 

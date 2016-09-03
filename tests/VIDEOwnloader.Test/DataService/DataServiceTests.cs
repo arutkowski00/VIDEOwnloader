@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
-using VIDEOwnloader.DataService;
+using VIDEOwnloader.Services.DataService;
 
-namespace VIDEOwnloader.Test.DataServices
+namespace VIDEOwnloader.Test.DataService
 {
     [TestFixture]
     public class DataServiceTests
     {
-        private readonly IDataService dataService = new VideoInfoLocalDataService();
+        private readonly IDataService _dataService = new VideoInfoLocalDataService();
 
         private readonly string[] _urls =
         {
@@ -18,7 +18,7 @@ namespace VIDEOwnloader.Test.DataServices
         [Test]
         public void GetValid_ShouldBeInvalid_WhenGivenBadUrl()
         {
-            dataService.GetValid(_urls[2], (response, exception) =>
+            _dataService.GetValid(_urls[2], (response, exception) =>
             {
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.ValidationResults, "ValidationResults not empty");
@@ -30,7 +30,7 @@ namespace VIDEOwnloader.Test.DataServices
         [Test]
         public void GetValid_ShouldBeValid_WhenGivenGoodUrl()
         {
-            dataService.GetValid(_urls[0], (response, exception) =>
+            _dataService.GetValid(_urls[0], (response, exception) =>
             {
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.ValidationResults, "ValidationResults not empty");
@@ -42,7 +42,7 @@ namespace VIDEOwnloader.Test.DataServices
         [Test]
         public void GetVideos_ShouldBeNothing_WhenGivenInvalidUrl()
         {
-            dataService.GetVideo(_urls[2], (response, exception) =>
+            _dataService.GetVideo(_urls[2], (response, exception) =>
             {
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsEmpty(response.Playlists, "response.Playlists empty");
@@ -53,7 +53,7 @@ namespace VIDEOwnloader.Test.DataServices
         [Test]
         public void GetVideos_ShouldBePlaylist_WhenGivenUrl()
         {
-            dataService.GetVideo(_urls[1], (response, exception) =>
+            _dataService.GetVideo(_urls[1], (response, exception) =>
             {
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.Playlists, "response.Playlists not empty");
@@ -65,7 +65,7 @@ namespace VIDEOwnloader.Test.DataServices
         [Test]
         public void GetVideos_ShouldBeVideo_WhenGivenUrl()
         {
-            dataService.GetVideo(_urls[0], (response, exception) =>
+            _dataService.GetVideo(_urls[0], (response, exception) =>
             {
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.Videos, "response.Videos not empty");

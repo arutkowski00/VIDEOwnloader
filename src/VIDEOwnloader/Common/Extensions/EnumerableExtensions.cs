@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace VIDEOwnloader.Common
+namespace VIDEOwnloader.Common.Extensions
 {
-    public static class IEnumerableExtension
+    internal static class EnumerableExtensions
     {
         public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source,
             Func<TSource, TKey> keySelector)

@@ -5,7 +5,7 @@ using VIDEOwnloader.Base;
 using VIDEOwnloader.Base.Validation;
 using VIDEOwnloader.Base.Video;
 
-namespace VIDEOwnloader.DataService
+namespace VIDEOwnloader.Services.DataService
 {
     public class VideoInfoDataService : IDataService
     {

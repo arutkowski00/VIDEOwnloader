@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace VIDEOwnloader.Common
+namespace VIDEOwnloader.Common.Extensions
 {
     public static class StringExtensions
     {

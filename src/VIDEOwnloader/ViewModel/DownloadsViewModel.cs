@@ -7,9 +7,10 @@ using System.Net;
 using GalaSoft.MvvmLight.CommandWpf;
 using MaterialDesignThemes.Wpf;
 using VIDEOwnloader.Common;
-using VIDEOwnloader.DataService;
+using VIDEOwnloader.Common.Extensions;
 using VIDEOwnloader.Model;
 using VIDEOwnloader.Properties;
+using VIDEOwnloader.Services.DataService;
 using VIDEOwnloader.View.Dialog;
 
 namespace VIDEOwnloader.ViewModel

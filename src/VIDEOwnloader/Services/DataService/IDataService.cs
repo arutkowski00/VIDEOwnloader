@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using VIDEOwnloader.Base.Validation;
 using VIDEOwnloader.Base.Video;
 
-namespace VIDEOwnloader.DataService
+namespace VIDEOwnloader.Services.DataService
 {
     public interface IDataService
     {

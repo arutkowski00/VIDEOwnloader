@@ -7,9 +7,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using VIDEOwnloader.Base.Validation;
 using VIDEOwnloader.Base.Video;
-using VIDEOwnloader.Common;
+using VIDEOwnloader.Common.Extensions;
 
-namespace VIDEOwnloader.DataService
+namespace VIDEOwnloader.Services.DataService
 {
     public class VideoInfoLocalDataService : IDataService
     {

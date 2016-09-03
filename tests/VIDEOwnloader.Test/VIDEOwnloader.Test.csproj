@@ -51,7 +51,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="DataServices\DataServiceTests.cs" />
+    <Compile Include="DataService\DataServiceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

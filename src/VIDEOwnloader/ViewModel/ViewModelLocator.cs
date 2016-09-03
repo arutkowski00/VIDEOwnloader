@@ -16,7 +16,7 @@ using GalaSoft.MvvmLight;
 using Microsoft.Practices.ServiceLocation;
 using Microsoft.Practices.Unity;
 using Microsoft.Practices.Unity.InterceptionExtension;
-using VIDEOwnloader.DataService;
+using VIDEOwnloader.Services.DataService;
 
 namespace VIDEOwnloader.ViewModel
 {

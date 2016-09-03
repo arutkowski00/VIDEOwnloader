@@ -3,7 +3,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using VIDEOwnloader.Base.Video;
-using VIDEOwnloader.DataService;
+using VIDEOwnloader.Services.DataService;
 
 namespace VIDEOwnloader.Model
 {

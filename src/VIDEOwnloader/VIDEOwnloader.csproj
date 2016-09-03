@@ -143,11 +143,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\EtaCalculator.cs" />
-    <Compile Include="Common\ExceptionExtensions.cs" />
+    <Compile Include="Common\Extensions\ExceptionExtensions.cs" />
     <Compile Include="Common\FrameNavigationService.cs" />
-    <Compile Include="Common\IEnumerableExtension.cs" />
+    <Compile Include="Common\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Common\LimitedConcurrencyLevelTaskScheduler.cs" />
-    <Compile Include="Common\StringExtensions.cs" />
+    <Compile Include="Common\Extensions\StringExtensions.cs" />
     <Compile Include="Controls\PauseButton.cs" />
     <Compile Include="Converter\IndexConverter.cs" />
     <Compile Include="Converter\MultiVisibilityConverter.cs" />
@@ -157,13 +157,13 @@
     <Compile Include="Common\RaisePropertyChangedCallHandler.cs" />
     <Compile Include="Converter\BytesToFileSizeConverter.cs" />
     <Compile Include="Converter\SecondsToTimeStringConverter.cs" />
-    <Compile Include="Common\TimeSpanExtension.cs" />
+    <Compile Include="Common\Extensions\TimeSpanExtensions.cs" />
     <Compile Include="Common\ValidationViewModelBase.cs" />
-    <Compile Include="DataService\VideoInfoLocalDataService.cs" />
+    <Compile Include="Services\DataService\VideoInfoLocalDataService.cs" />
     <Compile Include="Model\MenuItem.cs" />
-    <Compile Include="DataService\IDataService.cs" />
-    <Compile Include="DataService\VideoInfoDesignDataService.cs" />
-    <Compile Include="DataService\VideoInfoDataService.cs" />
+    <Compile Include="Services\DataService\IDataService.cs" />
+    <Compile Include="Services\DataService\VideoInfoDesignDataService.cs" />
+    <Compile Include="Services\DataService\VideoInfoDataService.cs" />
     <Compile Include="Model\DownloadItem.cs" />
     <Compile Include="Model\VideoPlaylist.cs" />
     <Compile Include="Model\VideoPlaylistItem.cs" />
@@ -247,6 +247,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ffmpeg.exe" />
     <Content Include="youtube-dl.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
