@@ -14,14 +14,14 @@
                 </Style>
             </ResourceDictionary>
         </Style.Resources>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidForegroundBrush}"/>
-        <Setter Property="Background" Value="{DynamicResource PrimaryHueMidBrush}"/>
-        <Setter Property="Width" Value="32"/>
-        <Setter Property="Height" Value="32"/>
-        <Setter Property="FontSize" Value="18"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidForegroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryHueMidBrush}" />
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="material:ToggleButtonAssist.OnContent">
             <Setter.Value>
                 <material:PackIcon x:Name="PausePackIcon" Kind="Play" />
@@ -33,7 +33,7 @@
                     <Grid Clip="{Binding ElementName=UncheckedEllipse, Path=RenderedGeometry}" ClipToBounds="True">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="Normal" />
                                 <VisualState x:Name="Disabled">
                                     <Storyboard>
                                         <!--<DoubleAnimation Duration="0" To="0.23" Storyboard.TargetProperty="(UIElement.Opacity)" />-->
@@ -44,11 +44,15 @@
                                 <VisualStateGroup.Transitions>
                                     <VisualTransition From="*" To="Checked">
                                         <Storyboard FillBehavior="HoldEnd">
-                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OffScaleTransform">
+                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           Storyboard.TargetName="OffScaleTransform">
                                                 <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.0" />
                                                 <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.1" />
                                             </DoubleAnimationUsingKeyFrames>
-                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OnScaleTransform">
+                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           Storyboard.TargetName="OnScaleTransform">
                                                 <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.1" />
                                                 <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.2" />
                                             </DoubleAnimationUsingKeyFrames>
@@ -56,11 +60,15 @@
                                     </VisualTransition>
                                     <VisualTransition From="Checked" To="Unchecked">
                                         <Storyboard FillBehavior="HoldEnd">
-                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OnScaleTransform">
+                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           Storyboard.TargetName="OnScaleTransform">
                                                 <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.0" />
                                                 <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.1" />
                                             </DoubleAnimationUsingKeyFrames>
-                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OffScaleTransform">
+                                            <DoubleAnimationUsingKeyFrames Duration="0:0:0.2"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           Storyboard.TargetName="OffScaleTransform">
                                                 <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.1" />
                                                 <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.2" />
                                             </DoubleAnimationUsingKeyFrames>
@@ -69,39 +77,47 @@
                                 </VisualStateGroup.Transitions>
                                 <VisualState x:Name="Checked">
                                     <Storyboard>
-                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OffScaleTransform"
+                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX"
+                                                         Storyboard.TargetName="OffScaleTransform"
                                                          To="0" />
-                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OnScaleTransform"
+                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX"
+                                                         Storyboard.TargetName="OnScaleTransform"
                                                          To="1" />
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="Unchecked">
                                     <Storyboard>
-                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OffScaleTransform"
+                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX"
+                                                         Storyboard.TargetName="OffScaleTransform"
                                                          To="1" />
-                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX" Storyboard.TargetName="OnScaleTransform"
+                                        <DoubleAnimation Duration="0" Storyboard.TargetProperty="ScaleX"
+                                                         Storyboard.TargetName="OnScaleTransform"
                                                          To="0" />
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="Indeterminate">
                                     <Storyboard>
-                                        <DoubleAnimation Duration="0" To="1" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="IndeterminateCheck"/>
+                                        <DoubleAnimation Duration="0" To="1"
+                                                         Storyboard.TargetProperty="(UIElement.Opacity)"
+                                                         Storyboard.TargetName="IndeterminateCheck" />
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <Grid x:Name="OffGrid" RenderTransformOrigin=".5,.5" Background="{TemplateBinding Background}">
-                            <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
-                                              FlowDirection="LeftToRight"/>
+                            <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Content="{TemplateBinding Content}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              FlowDirection="LeftToRight" />
                             <Grid x:Name="PauseToggleButtonOverlay" Opacity="0">
                                 <Grid.Triggers>
                                     <EventTrigger RoutedEvent="UIElement.MouseEnter">
                                         <BeginStoryboard>
                                             <Storyboard>
                                                 <DoubleAnimationUsingKeyFrames
-                                                        Storyboard.TargetProperty="(UIElement.Opacity)"
-                                                        Storyboard.TargetName="PauseToggleButtonOverlay">
+                                                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                                                    Storyboard.TargetName="PauseToggleButtonOverlay">
                                                     <EasingDoubleKeyFrame KeyTime="0" Value="0" />
                                                     <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1" />
                                                 </DoubleAnimationUsingKeyFrames>
@@ -112,8 +128,8 @@
                                         <BeginStoryboard>
                                             <Storyboard>
                                                 <DoubleAnimationUsingKeyFrames
-                                                        Storyboard.TargetProperty="(UIElement.Opacity)"
-                                                        Storyboard.TargetName="PauseToggleButtonOverlay">
+                                                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                                                    Storyboard.TargetName="PauseToggleButtonOverlay">
                                                     <EasingDoubleKeyFrame KeyTime="0" Value="1" />
                                                     <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
                                                 </DoubleAnimationUsingKeyFrames>
@@ -123,15 +139,20 @@
                                 </Grid.Triggers>
                                 <Border Background="{DynamicResource Accent400Brush}" Opacity="0.3" />
                                 <material:PackIcon Kind="Pause" VerticalAlignment="Center"
-                                                       HorizontalAlignment="Center" />
+                                                   HorizontalAlignment="Center" />
                             </Grid>
                             <Grid.Clip>
-                                <EllipseGeometry RadiusX="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Width, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}" 
-                                                 RadiusY="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Height, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}">
+                                <EllipseGeometry
+                                    RadiusX="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Width, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}"
+                                    RadiusY="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Height, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}">
                                     <EllipseGeometry.Center>
                                         <MultiBinding Converter="{StaticResource PointValueConverter}">
-                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Width" Converter="{StaticResource DivisionMathConverter}" ConverterParameter="2.0" />
-                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height" Converter="{StaticResource DivisionMathConverter}" ConverterParameter="2.0" />
+                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Width"
+                                                     Converter="{StaticResource DivisionMathConverter}"
+                                                     ConverterParameter="2.0" />
+                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height"
+                                                     Converter="{StaticResource DivisionMathConverter}"
+                                                     ConverterParameter="2.0" />
                                         </MultiBinding>
                                     </EllipseGeometry.Center>
                                 </EllipseGeometry>
@@ -141,17 +162,23 @@
                             </Grid.RenderTransform>
                         </Grid>
                         <Grid x:Name="OnGrid" RenderTransformOrigin=".5,.5" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               FlowDirection="LeftToRight"
                                               Content="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(material:ToggleButtonAssist.OnContent)}"
                                               ContentTemplate="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(material:ToggleButtonAssist.OnContentTemplate)}" />
                             <Grid.Clip>
-                                <EllipseGeometry RadiusX="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Width, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}" 
-                                                 RadiusY="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Height, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}">
+                                <EllipseGeometry
+                                    RadiusX="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Width, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}"
+                                    RadiusY="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Height, Converter={StaticResource DivisionMathConverter}, ConverterParameter=2.0}">
                                     <EllipseGeometry.Center>
                                         <MultiBinding Converter="{StaticResource PointValueConverter}">
-                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Width" Converter="{StaticResource DivisionMathConverter}" ConverterParameter="2.0" />
-                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height" Converter="{StaticResource DivisionMathConverter}" ConverterParameter="2.0" />
+                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Width"
+                                                     Converter="{StaticResource DivisionMathConverter}"
+                                                     ConverterParameter="2.0" />
+                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Height"
+                                                     Converter="{StaticResource DivisionMathConverter}"
+                                                     ConverterParameter="2.0" />
                                         </MultiBinding>
                                     </EllipseGeometry.Center>
                                 </EllipseGeometry>
@@ -166,4 +193,3 @@
         </Setter>
     </Style>
 </ResourceDictionary>
-

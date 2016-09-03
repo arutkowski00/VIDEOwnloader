@@ -28,9 +28,9 @@
                                  SmallChange="0.01" Foreground="{DynamicResource Primary900Brush}" Height="38"
                                  Width="38" Margin="-2" />
                     <controls:PauseButton Grid.Column="0" ToolTip="Pause/Resume" x:Name="PauseToggleButton"
-                                  VerticalAlignment="Center" IsEnabled="{Binding CanBePaused}"
-                                  IsChecked="False" Style="{StaticResource PauseButtonStyle}"
-                                  Foreground="{DynamicResource Primary400ForegroundBrush}">
+                                          VerticalAlignment="Center" IsEnabled="{Binding CanBePaused}"
+                                          IsChecked="False" Style="{StaticResource PauseButtonStyle}"
+                                          Foreground="{DynamicResource Primary400ForegroundBrush}">
                         <controls:PauseButton.Content>
                             <Image Source="{Binding Video.Thumbnail}" Stretch="UniformToFill" />
                         </controls:PauseButton.Content>
