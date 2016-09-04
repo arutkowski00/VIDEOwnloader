@@ -24,46 +24,46 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Top" Margin="0 4 0 0" x:Name="VideoSidebar">
-                    <Grid Margin="0 4 0 0">
+                <Grid VerticalAlignment="Top" Margin="0 4 0 0" x:Name="VideoSidebar">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid Margin="0 4 0 0" Grid.Row="0">
                         <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Width="140" />
-                        <TextBlock Background="#D5000000" Foreground="White" Margin="0 0 1 0" Padding="1 0"
+                        <TextBlock Background="#D5000000" Foreground="White" Padding="2 0 2 1"
                                    Text="{Binding Duration, Converter={StaticResource SecondsToTimeStringConverter}}"
                                    VerticalAlignment="Bottom" HorizontalAlignment="Right" />
                     </Grid>
-                    <material:RatingBar
-                        Visibility="{Binding AverageRating, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                        Margin="0 8" HorizontalAlignment="Center" Value="{Binding AverageRating, Mode=OneWay}"
-                        Foreground="{DynamicResource Accent700Brush}" />
-                    <StackPanel HorizontalAlignment="Center">
-                        <StackPanel.Resources>
-                            <Style TargetType="material:Chip">
-                                <Setter Property="Cursor" Value="Arrow" />
-                            </Style>
-                        </StackPanel.Resources>
-                        <material:Chip IconBackground="#FF0D47A1" Margin="0 0 0 8"
-                                       Visibility="{Binding ViewCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
-                            <material:Chip.Icon>
-                                <material:PackIcon Kind="Eye" />
-                            </material:Chip.Icon>
-                            <Binding Path="ViewCount" Converter="{StaticResource NumberGroupSeparatorConverter}" />
-                        </material:Chip>
-                        <material:Chip IconBackground="#FF1B5E20" Margin="0 0 0 8"
-                                       Visibility="{Binding LikeCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
-                            <material:Chip.Icon>
-                                <material:PackIcon Kind="ThumbUp" />
-                            </material:Chip.Icon>
-                            <Binding Path="LikeCount" Converter="{StaticResource NumberGroupSeparatorConverter}" />
-                        </material:Chip>
-                        <material:Chip IconBackground="#FFB71C1C" Margin="0 0 0 8"
-                                       Visibility="{Binding DislikeCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
-                            <material:Chip.Icon>
-                                <material:PackIcon Kind="ThumbDown" />
-                            </material:Chip.Icon>
-                            <Binding Path="DislikeCount" Converter="{StaticResource NumberGroupSeparatorConverter}" />
-                        </material:Chip>
+                    <material:RatingBar Grid.Row="1"
+                                        Visibility="{Binding AverageRating, Converter={StaticResource NotZeroToVisibilityConverter}}"
+                                        Margin="0,8,0,0" HorizontalAlignment="Center"
+                                        Value="{Binding AverageRating, Mode=OneWay}"
+                                        Foreground="{DynamicResource Accent700Brush}" IsManipulationEnabled="False" />
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="10,8,10,0"
+                                    Visibility="{Binding ViewCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
+                            <material:PackIcon Kind="Eye" Margin="0,0,8,0" />
+                            <TextBlock
+                                Text="{Binding ViewCount, Converter={StaticResource NumberGroupSeparatorConverter}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="10,8,10,0"
+                                    Visibility="{Binding LikeCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
+                            <material:PackIcon Kind="ThumbUp" Foreground="#FF1B5E20" Margin="0,0,8,0" />
+                            <TextBlock
+                                Text="{Binding LikeCount, Converter={StaticResource NumberGroupSeparatorConverter}}"
+                                Foreground="#FF1B5E20" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="10,8,10,0"
+                                    Visibility="{Binding DislikeCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
+                            <material:PackIcon Kind="ThumbDown" Foreground="#FFB71C1C" Margin="0,2,8,0" />
+                            <TextBlock
+                                Text="{Binding DislikeCount, Converter={StaticResource NumberGroupSeparatorConverter}}"
+                                Foreground="#FFB71C1C" />
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
                 <ScrollViewer Margin="8 0 0 0" Grid.Column="1" MinHeight="200"
                               MaxHeight="{Binding ActualHeight, ElementName=VideoSidebar}"
                               VerticalScrollBarVisibility="Auto">
@@ -73,7 +73,8 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="title" Grid.Row="0" Style="{DynamicResource MaterialDesignTitleTextBlock}"
+                        <TextBlock x:Name="title" Grid.Row="0"
+                                   Style="{DynamicResource MaterialDesignSubheadingTextBlock}"
                                    Text="{Binding Title}" TextTrimming="WordEllipsis" />
                         <TextBlock x:Name="uploader" Grid.Row="1" Foreground="DimGray" TextTrimming="WordEllipsis">
                             <Hyperlink NavigateUri="{Binding UploaderUrl}" ToolTip="Go to uploader's site"
@@ -150,18 +151,19 @@
                 <RowDefinition />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock Style="{DynamicResource MaterialDesignHeadlineTextBlock}">New download</TextBlock>
-            <TextBox Grid.Row="1" Margin="0 6 0 0"
+
+            <TextBlock Style="{DynamicResource MaterialDesignTitleTextBlock}">New download</TextBlock>
+            <TextBox Grid.Row="1" Margin="0 8 0 0" FontSize="15"
                      Text="{Binding Url, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
-                     FontSize="18" MinWidth="250" Style="{DynamicResource MaterialDesignFloatingHintTextBox}">
+                     MinWidth="250" Style="{DynamicResource MaterialDesignFloatingHintTextBox}">
                 <material:HintAssist.Hint>
                     <StackPanel Orientation="Horizontal">
-                        <material:PackIcon Kind="Earth" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <material:PackIcon Kind="Earth" VerticalAlignment="Center" Margin="0,1,4,0" />
                         <TextBlock>URL</TextBlock>
                     </StackPanel>
                 </material:HintAssist.Hint>
             </TextBox>
-            <Grid Grid.Row="2" Margin="0 13 0 0"
+            <Grid Grid.Row="2" Margin="0 8 0 0"
                   Visibility="{Binding ResultItem, Converter={StaticResource NullableToVisibilityConverter}}"
                   IsEnabled="{Binding IsProcessing, Converter={StaticResource NotConverter}}">
                 <Grid.ColumnDefinitions>
@@ -171,18 +173,20 @@
 
                 <Button x:Name="LocationButton" Command="{Binding ChooseSavePathCommand, ValidatesOnDataErrors=True}"
                         VerticalAlignment="Bottom"
-                        Grid.Column="0" FontSize="16" HorizontalContentAlignment="Left"
+                        Grid.Column="0" HorizontalContentAlignment="Left"
                         Style="{DynamicResource MaterialDesignRaisedDarkButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <material:PackIcon Kind="Folder" VerticalAlignment="Center" Margin="0 1 8 0"
+                    <StackPanel Orientation="Horizontal" Margin="-6,0,0,0">
+                        <material:PackIcon Kind="Folder" VerticalAlignment="Center" Margin="0 2 8 0"
                                            x:Name="LocationButtonIcon" />
                         <TextBlock Text="{Binding VideoFilename, Mode=OneWay, ValidatesOnDataErrors=True}"
+                                   FontSize="15"
                                    Width="{Binding ActualWidth, ElementName=LocationButton, Converter={StaticResource SubstractMathConverter}, ConverterParameter=56}"
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </Button>
                 <ComboBox SelectedItem="{Binding VideoFormat, ValidatesOnDataErrors=True}" Margin="8 0 0 0"
-                          MinWidth="130" Grid.Column="1" material:HintAssist.Hint="Format" FontSize="16"
+                          FontSize="15"
+                          MinWidth="130" Grid.Column="1" material:HintAssist.Hint="Format"
                           ItemsSource="{Binding AvailableFormats, ValidatesOnDataErrors=True}"
                           VerticalAlignment="Bottom" Style="{DynamicResource MaterialDesignFloatingHintComboBox}">
                     <ComboBox.ItemTemplate>
@@ -200,8 +204,13 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </Grid>
-            <Expander Grid.Row="3" Margin="0 20 0 0" Header="URL details" FontSize="14" IsExpanded="True"
+            <Expander Grid.Row="3" Margin="10 16 0 0" Header="URL details" IsExpanded="True"
                       Visibility="{Binding ResultItem, Converter={StaticResource NullableToVisibilityConverter}}">
+                <Expander.HeaderTemplate>
+                    <DataTemplate>
+                        <TextBlock Style="{DynamicResource MaterialDesignSubheadingTextBlock}" Margin="-8,-3,0,0">URL details</TextBlock>
+                    </DataTemplate>
+                </Expander.HeaderTemplate>
                 <ContentControl Content="{Binding ResultItem}" />
             </Expander>
             <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0 16 0 0">
