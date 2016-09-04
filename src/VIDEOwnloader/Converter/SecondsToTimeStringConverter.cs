@@ -30,13 +30,9 @@ namespace VIDEOwnloader.Converter
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var span = new TimeSpan(0, 0, value is int ? (int)value : 0);
-
-            var formatted = string.Format("{0}{1}:{2:D2}",
-                span.Hours > 0 ? string.Format("{0:0}:", span.Hours) : string.Empty,
-                span.Hours > 0 ? string.Format("{0:D2}:", span.Minutes) : span.Minutes.ToString(),
-                span.Seconds);
-
+            var span = new TimeSpan(0, 0, value as int? ?? 0);
+            var formatted =
+                $"{(span.Hours > 0 ? $"{span.Hours:0}:" : string.Empty)}{span.Minutes:D2}:{span.Seconds}";
             return formatted;
         }
 

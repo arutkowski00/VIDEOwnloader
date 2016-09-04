@@ -272,7 +272,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\LICENSE.txt" />
-    <Content Include="ffmpeg.exe" />
+    <Content Include="ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="youtube-dl.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
