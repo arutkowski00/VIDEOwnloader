@@ -32,7 +32,7 @@
                 <Run Text="{Binding DescriptionText, Mode=OneWay}" />
                 <LineBreak />
                 <LineBreak />
-                <Hyperlink NavigateUri="https://github.com/arutkowski00/VIDEOwnloader" TextDecorations="Underline">GitHub</Hyperlink>
+                <Hyperlink NavigateUri="https://github.com/arutkowski00/VIDEOwnloader" TextDecorations="Underline" Command="{Binding NavigateUriCommand}" CommandParameter="{Binding NavigateUri, RelativeSource={RelativeSource Self}}">GitHub</Hyperlink>
                 <LineBreak />
                     </TextBlock>
                     <TextBlock HorizontalAlignment="Center" Text="{Binding CopyrightText}" />

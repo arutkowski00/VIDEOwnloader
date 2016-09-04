@@ -18,7 +18,6 @@
 
 #endregion
 
-using System.Windows.Controls;
 using System.Windows.Media;
 using GalaSoft.MvvmLight;
 
