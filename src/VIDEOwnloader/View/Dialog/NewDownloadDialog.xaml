@@ -24,19 +24,19 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Grid VerticalAlignment="Top" Margin="0 4 0 0" x:Name="VideoSidebar">
+                <Grid VerticalAlignment="Top" Margin="0 0 0 0" x:Name="VideoSidebar">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid Margin="0 4 0 0" Grid.Row="0">
+                    <Grid Grid.Row="0">
                         <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Width="140" />
                         <TextBlock Background="#D5000000" Foreground="White" Padding="2 0 2 1"
                                    Text="{Binding Duration, Converter={StaticResource SecondsToTimeStringConverter}}"
                                    VerticalAlignment="Bottom" HorizontalAlignment="Right" />
                     </Grid>
-                    <material:RatingBar Grid.Row="1"
+                    <material:RatingBar Grid.Row="1" Orientation="Horizontal"
                                         Visibility="{Binding AverageRating, Converter={StaticResource NotZeroToVisibilityConverter}}"
                                         Margin="0,8,0,0" HorizontalAlignment="Center"
                                         Value="{Binding AverageRating, Mode=OneWay}"
@@ -91,8 +91,15 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type model:VideoPlaylist}">
             <StackPanel>
-                <TextBlock x:Name="title" Style="{DynamicResource MaterialDesignTitleTextBlock}" FontWeight="SemiBold"
-                           Text="{Binding Title}" />
+                <StackPanel Orientation="Horizontal">
+                    <ProgressBar
+                        Visibility="{Binding IsFilling, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Margin="0 -6" Width="28" Height="28" IsIndeterminate="True"
+                        Style="{DynamicResource MaterialDesignCircularProgressBar}" HorizontalAlignment="Left" />
+                    <TextBlock x:Name="title" Style="{DynamicResource MaterialDesignTitleTextBlock}"
+                               FontWeight="SemiBold"
+                               Text="{Binding Title}" />
+                </StackPanel>
                 <ItemsControl ItemsSource="{Binding}" />
             </StackPanel>
         </DataTemplate>
@@ -105,10 +112,7 @@
                         <ColumnDefinition />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ProgressBar
-                        Visibility="{Binding IsFilling, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Margin="0 -6" Width="28" Height="28" IsIndeterminate="True"
-                        Style="{DynamicResource MaterialDesignCircularProgressBar}" HorizontalAlignment="Left" />
+
                     <TextBlock
                         Grid.Column="0"
                         Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Converter={StaticResource IndexConverter}}"
@@ -152,6 +156,12 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup>
+                    <VisualState x:Name="GetInfo" />
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+
             <TextBlock Style="{DynamicResource MaterialDesignTitleTextBlock}">New download</TextBlock>
             <TextBox Grid.Row="1" Margin="0 8 0 0" FontSize="15"
                      Text="{Binding Url, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
@@ -191,29 +201,31 @@
                           VerticalAlignment="Bottom" Style="{DynamicResource MaterialDesignFloatingHintComboBox}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type video:VideoFormat}">
+
                             <StackPanel Orientation="Horizontal">
-                                <material:PackIcon Kind="MusicNote"
-                                                   Visibility="{Binding AudioOnly, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                   Margin="0 2 8 0" VerticalAlignment="Center" />
-                                <material:PackIcon Kind="Video"
-                                                   Visibility="{Binding HasAudioAndVideo, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                   Margin="0 2 8 0" VerticalAlignment="Center" />
+                                <material:PackIcon x:Name="Icon" Kind="Video" Margin="0 2 8 0"
+                                                   VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Description}" />
                             </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding AudioOnly}" Value="True">
+                                    <Setter TargetName="Icon" Property="Kind" Value="MusicNote" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </Grid>
-            <Expander Grid.Row="3" Margin="10 16 0 0" Header="URL details" IsExpanded="True"
+            <Expander Grid.Row="3" Margin="0 8 0 0" Header="URL details" IsExpanded="True"
                       Visibility="{Binding ResultItem, Converter={StaticResource NullableToVisibilityConverter}}">
                 <Expander.HeaderTemplate>
                     <DataTemplate>
-                        <TextBlock Style="{DynamicResource MaterialDesignSubheadingTextBlock}" Margin="-8,-3,0,0">URL details</TextBlock>
+                        <TextBlock Style="{DynamicResource MaterialDesignSubheadingTextBlock}">URL details</TextBlock>
                     </DataTemplate>
                 </Expander.HeaderTemplate>
-                <ContentControl Content="{Binding ResultItem}" />
+                <ContentControl Content="{Binding ResultItem}" Margin="2,8,0,0" />
             </Expander>
-            <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0 16 0 0">
+            <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0 8 0 0">
                 <Button Name="GetButton" IsDefault="True" Style="{DynamicResource MaterialDesignFlatButton}"
                         Command="{Binding GetVideoInfoCommand}"
                         Visibility="{Binding NoResultItem, Converter={StaticResource BooleanToVisibilityConverter}}">
