@@ -56,12 +56,14 @@ namespace VIDEOwnloader.ViewModel
 
             container.AddNewExtension<Interception>();
             container.RegisterType<MainViewModel>().
+                RegisterType<AboutViewModel>().
                 RegisterType<DownloadsViewModel>().
                 RegisterType<NewDownloadViewModel>(new TransientLifetimeManager()).
                 Configure<Interception>().
                 SetInterceptorFor<MainViewModel>(new VirtualMethodInterceptor());
         }
 
+        public AboutViewModel About => ServiceLocator.Current.GetInstance<AboutViewModel>();
         public DownloadsViewModel Downloads => ServiceLocator.Current.GetInstance<DownloadsViewModel>();
         public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
         public NewDownloadViewModel NewDownload => ServiceLocator.Current.GetInstance<NewDownloadViewModel>();

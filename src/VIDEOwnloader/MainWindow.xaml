@@ -70,7 +70,7 @@
                                         <TextBlock>Settings</TextBlock>
                                     </StackPanel>
                                 </Button>
-                                <Button>
+                                <Button Command="{Binding OpenAboutDialogCommand}">
                                     <StackPanel Orientation="Horizontal">
                                         <material:PackIcon Kind="Information" />
                                         <TextBlock>About</TextBlock>

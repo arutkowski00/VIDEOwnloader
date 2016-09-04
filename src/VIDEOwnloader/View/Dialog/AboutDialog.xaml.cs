@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 
 // VIDEOwnloader
 // Copyright (C) 2016 Adam Rutkowski
@@ -18,24 +18,23 @@
 
 #endregion
 
+using System.Windows.Controls;
+using System.Windows.Media;
 using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.CommandWpf;
-using MaterialDesignThemes.Wpf;
-using VIDEOwnloader.View.Dialog;
 
-namespace VIDEOwnloader.ViewModel
+namespace VIDEOwnloader.View.Dialog
 {
-    public class MainViewModel : ViewModelBase
+    /// <summary>
+    ///     Interaction logic for AboutDialog.xaml
+    /// </summary>
+    public partial class AboutDialog
     {
-        private AboutDialog _aboutDialog;
-        private RelayCommand _openAboutDialogCommand;
-
-        public RelayCommand OpenAboutDialogCommand
-            => _openAboutDialogCommand ?? (_openAboutDialogCommand = new RelayCommand(OpenAboutDialog));
-
-        private async void OpenAboutDialog()
+        public AboutDialog()
         {
-            await DialogHost.Show(_aboutDialog ?? (_aboutDialog = new AboutDialog()), "RootDialog");
+            InitializeComponent();
+
+            if (!ViewModelBase.IsInDesignModeStatic)
+                Background = Brushes.Transparent;
         }
     }
 }
