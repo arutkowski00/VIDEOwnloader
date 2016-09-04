@@ -40,7 +40,7 @@
                                         Visibility="{Binding AverageRating, Converter={StaticResource NotZeroToVisibilityConverter}}"
                                         Margin="0,8,0,0" HorizontalAlignment="Center"
                                         Value="{Binding AverageRating, Mode=OneWay}"
-                                        Foreground="{DynamicResource Accent700Brush}" IsManipulationEnabled="False" />
+                                        Foreground="{DynamicResource Accent200Brush}" IsManipulationEnabled="False" />
                     <StackPanel Grid.Row="2" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="10,8,10,0"
                                     Visibility="{Binding ViewCount, Converter={StaticResource NotZeroToVisibilityConverter}}">
@@ -158,7 +158,7 @@
                      MinWidth="250" Style="{DynamicResource MaterialDesignFloatingHintTextBox}">
                 <material:HintAssist.Hint>
                     <StackPanel Orientation="Horizontal">
-                        <material:PackIcon Kind="Earth" VerticalAlignment="Center" Margin="0,1,4,0" />
+                        <material:PackIcon Kind="Earth" VerticalAlignment="Center" Margin="0,0,4,0" />
                         <TextBlock>URL</TextBlock>
                     </StackPanel>
                 </material:HintAssist.Hint>
