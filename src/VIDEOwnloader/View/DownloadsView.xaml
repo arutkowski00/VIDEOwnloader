@@ -95,11 +95,11 @@
             <TextBlock Margin="38,0,32,0" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"
                        Visibility="{Binding IsDownloadListEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"
                        LineHeight="21.333">
-                <Run Text="There's nothing to download." /><LineBreak /><Run Text="Add new video by pressing " />
+                <Run Text="There's nothing to download." /><LineBreak /><Run Text="Add something by pressing" />
                 <InlineUIContainer>
-                    <material:PackIcon Kind="Plus" Margin="0, -2" />
+                    <material:PackIcon Kind="PlusCircle" Margin="0,0,0,-6" Width="24" Height="24" Foreground="{StaticResource Primary700Brush}" />
                 </InlineUIContainer>
-                <Run Text=" button." />
+                <Run Text="button." />
             </TextBlock>
             <StackPanel
                 Visibility="{Binding AreItemsInCompletedList, Converter={StaticResource BooleanToVisibilityConverter}}">

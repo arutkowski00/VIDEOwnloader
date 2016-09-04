@@ -13,15 +13,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-        <material:PackIcon Grid.Row="0" Grid.Column="0" Kind="{Binding IconKind}" Width="32" Height="32" />
-        <TextBlock Grid.Row="0" Grid.Column="1" Style="{DynamicResource MaterialDesignHeadlineTextBlock}"
-                   Text="{Binding Title}" Margin="8,0,0,0" />
-        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Message}" Margin="0 8 0 0" TextWrapping="Wrap" />
-        <StackPanel x:Name="ButtonsPanel" Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0" Orientation="Horizontal"
+        <TextBlock Grid.Row="0" Style="{DynamicResource MaterialDesignTitleTextBlock}"
+                   Text="{Binding Title}" />
+        <TextBlock Grid.Row="1" Text="{Binding Message}" Margin="0 8 0 0" TextWrapping="Wrap" />
+        <StackPanel x:Name="ButtonsPanel" Grid.Row="2" Orientation="Horizontal"
                     Margin="0 16 0 0">
             <StackPanel.Resources>
                 <Style TargetType="Button">

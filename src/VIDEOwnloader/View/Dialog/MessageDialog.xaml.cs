@@ -36,10 +36,6 @@ namespace VIDEOwnloader.View.Dialog
             "DialogButton", typeof(MessageDialogButton), typeof(MessageDialog),
             new PropertyMetadata(default(MessageDialogButton), DialogButtonChanged));
 
-        public static readonly DependencyProperty IconKindProperty = DependencyProperty.Register(
-            "IconKind", typeof(PackIconKind), typeof(MessageDialog), new PropertyMetadata(default(PackIconKind)));
-
-
         public MessageDialog()
         {
             InitializeComponent();
@@ -52,12 +48,6 @@ namespace VIDEOwnloader.View.Dialog
         }
 
         public MessageDialogResult DialogResult { get; private set; }
-
-        public PackIconKind IconKind
-        {
-            get { return (PackIconKind)GetValue(IconKindProperty); }
-            set { SetValue(IconKindProperty, value); }
-        }
 
         public string Message
         {

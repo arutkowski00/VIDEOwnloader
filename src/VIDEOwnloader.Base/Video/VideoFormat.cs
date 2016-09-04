@@ -33,6 +33,7 @@ namespace VIDEOwnloader.Base.Video
         [JsonProperty("asr")]
         public int? Asr { get; set; }
 
+        [JsonIgnore]
         public bool AudioOnly => Vcodec == "none";
 
         [JsonProperty("container")]
@@ -44,8 +45,8 @@ namespace VIDEOwnloader.Base.Video
             get
             {
                 if (Vcodec == "none")
-                    return Abr != 0 ? $"{Extension} (audio only, {Abr} kbps)" : $"{Extension} (audio only, {FormatId})";
-                if ((Acodec == "none") || (Abr != 0))
+                    return Abr > 0 ? $"{Extension} (audio only, {Abr} kbps)" : $"{Extension} (audio only, {FormatId})";
+                if ((Acodec == "none") || (Abr <= 0))
                     return $"{FormatNote} {Extension} ({Width}x{Height})";
                 return $"{FormatNote} {Extension} ({Width}x{Height}, {Abr} kbps)";
             }
@@ -69,6 +70,7 @@ namespace VIDEOwnloader.Base.Video
         [JsonProperty("fps")]
         public int? Fps { get; set; }
 
+        [JsonIgnore]
         public bool HasAudioAndVideo => (Vcodec != "none") && (Acodec != "none");
 
         [JsonProperty("height")]

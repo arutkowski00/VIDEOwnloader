@@ -163,7 +163,7 @@
             </VisualStateManager.VisualStateGroups>
 
             <TextBlock Style="{DynamicResource MaterialDesignTitleTextBlock}">New download</TextBlock>
-            <TextBox Grid.Row="1" Margin="0 8 0 0" FontSize="15"
+            <TextBox Grid.Row="1" Margin="0 8" FontSize="15"
                      Text="{Binding Url, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                      MinWidth="250" Style="{DynamicResource MaterialDesignFloatingHintTextBox}">
                 <material:HintAssist.Hint>
@@ -173,7 +173,7 @@
                     </StackPanel>
                 </material:HintAssist.Hint>
             </TextBox>
-            <Grid Grid.Row="2" Margin="0 8 0 0"
+            <Grid Grid.Row="2"
                   Visibility="{Binding ResultItem, Converter={StaticResource NullableToVisibilityConverter}}"
                   IsEnabled="{Binding IsProcessing, Converter={StaticResource NotConverter}}">
                 <Grid.ColumnDefinitions>
