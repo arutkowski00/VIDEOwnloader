@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=3.4.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.4.1\lib\net45\nunit.framework.dll</HintPath>
+      <HintPath>..\..\packages\NUnit.3.4.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -55,9 +55,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\src\VIDEOwnloader.Base\VIDEOwnloader.Base.csproj">
       <Project>{a54a646b-35a6-4504-a632-a6a5a03a6947}</Project>
       <Name>VIDEOwnloader.Base</Name>
@@ -66,6 +63,9 @@
       <Project>{5b3dc4f3-eb21-4f2d-8abf-25e9d7b60df7}</Project>
       <Name>VIDEOwnloader</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
