@@ -75,7 +75,7 @@ namespace VIDEOwnloader.ViewModel
 #pragma warning restore 162
         }
 
-        public IDataService DataService { get; }
+        private IDataService DataService { get; }
 
         public IEnumerable<VideoFormat> AvailableFormats
         {

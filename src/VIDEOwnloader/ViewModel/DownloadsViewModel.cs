@@ -90,7 +90,7 @@ namespace VIDEOwnloader.ViewModel
         public ObservableCollection<DownloadItem> CompletedList { get; private set; } =
             new ObservableCollection<DownloadItem>();
 
-        public IDataService DataService { get; }
+        private IDataService DataService { get; }
 
         [RaisePropertyChanged]
         public ObservableCollection<DownloadItem> DownloadList { get; private set; } =
