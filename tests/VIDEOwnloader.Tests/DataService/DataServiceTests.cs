@@ -40,6 +40,7 @@ namespace VIDEOwnloader.Test.DataService
         {
             _dataService.GetValid(_urls[2], (response, exception) =>
             {
+                if (exception != null) throw exception;
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.ValidationResults, "ValidationResults not empty");
                 Assert.True(response.ValidationResults.Length == 1, "response.ValidationResults.Length == 1");
@@ -52,6 +53,7 @@ namespace VIDEOwnloader.Test.DataService
         {
             _dataService.GetValid(_urls[0], (response, exception) =>
             {
+                if (exception != null) throw exception;
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.ValidationResults, "ValidationResults not empty");
                 Assert.True(response.ValidationResults.Length == 1, "response.ValidationResults.Length == 1");
@@ -64,6 +66,7 @@ namespace VIDEOwnloader.Test.DataService
         {
             _dataService.GetVideo(_urls[2], (response, exception) =>
             {
+                if (exception != null) throw exception;
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsEmpty(response.Playlists, "response.Playlists empty");
                 Assert.IsEmpty(response.Videos, "response.Videos empty");
@@ -75,6 +78,7 @@ namespace VIDEOwnloader.Test.DataService
         {
             _dataService.GetVideo(_urls[1], (response, exception) =>
             {
+                if (exception != null) throw exception;
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.Playlists, "response.Playlists not empty");
                 Assert.True(response.Videos.Length == 1, "response.Videos.Length == 1");
@@ -87,6 +91,7 @@ namespace VIDEOwnloader.Test.DataService
         {
             _dataService.GetVideo(_urls[0], (response, exception) =>
             {
+                if (exception != null) throw exception;
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.Videos, "response.Videos not empty");
                 Assert.True(response.Videos.Length == 1, "response.Videos.Length == 1");

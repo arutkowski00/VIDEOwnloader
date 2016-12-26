@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VIDEOwnloader.Base", "src\V
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "VIDEOwnloader.REST", "src\VIDEOwnloader.REST\VIDEOwnloader.REST.pyproj", "{482A0A6A-7D0D-4F12-B70F-943FA8DA62B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VIDEOwnloader.Test", "tests\VIDEOwnloader.Test\VIDEOwnloader.Test.csproj", "{345811F8-2638-4915-B661-B2D9B31A2EAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VIDEOwnloader.Tests", "tests\VIDEOwnloader.Tests\VIDEOwnloader.Tests.csproj", "{345811F8-2638-4915-B661-B2D9B31A2EAE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8E2D5BD0-B162-4892-8D68-C037C328947A}"
 EndProject
