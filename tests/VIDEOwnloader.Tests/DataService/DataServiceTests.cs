@@ -18,6 +18,7 @@
 
 #endregion
 
+using System.IO;
 using NUnit.Framework;
 using VIDEOwnloader.Services.DataService;
 
@@ -34,6 +35,16 @@ namespace VIDEOwnloader.Test.DataService
             "https://www.youtube.com/playlist?list=PLbpi6ZahtOH66hnix9rPjEMxT3kNGXVTO", // one playlist
             "http://isitfridayyet.net/" // one invalid
         };
+
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            if (_dataService is VideoInfoLocalDataService)
+            {
+                ((VideoInfoLocalDataService)_dataService).YoutubeDlFilename =
+                    Path.Combine(TestContext.CurrentContext.TestDirectory, "youtube-dl.exe");
+            }
+        }
 
         [Test]
         public void GetValid_ShouldBeInvalid_WhenGivenBadUrl()
@@ -81,8 +92,9 @@ namespace VIDEOwnloader.Test.DataService
                 if (exception != null) throw exception;
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.Playlists, "response.Playlists not empty");
-                Assert.True(response.Videos.Length == 1, "response.Videos.Length == 1");
+                Assert.True(response.Videos.Length == 0, "response.Videos.Length == 0");
                 Assert.True(response.Playlists.Length == 1, "response.Playlists.Length == 1");
+                Assert.True(response.Playlists[0].Entries.Length > 0, "has at least one video");
             });
         }
 
@@ -95,7 +107,7 @@ namespace VIDEOwnloader.Test.DataService
                 Assert.IsNotNull(response, "response != null");
                 Assert.IsNotEmpty(response.Videos, "response.Videos not empty");
                 Assert.True(response.Videos.Length == 1, "response.Videos.Length == 1");
-                Assert.True(response.Playlists.Length == 1, "response.Playlists.Length == 1");
+                Assert.True(response.Playlists.Length == 0, "response.Playlists.Length == 0");
             });
         }
     }

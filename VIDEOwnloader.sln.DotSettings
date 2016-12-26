@@ -16,4 +16,5 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the&#xD;
 GNU General Public License for more details.&#xD;
 &#xD;
 You should have received a copy of the GNU General Public License&#xD;
-along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</s:String></wpf:ResourceDictionary>
+along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</s:String>
+	<s:Boolean x:Key="/Default/Environment/UnitTesting/ShadowCopy/@EntryValue">False</s:Boolean></wpf:ResourceDictionary>

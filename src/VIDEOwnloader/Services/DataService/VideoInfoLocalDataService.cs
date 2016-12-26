@@ -33,6 +33,7 @@ namespace VIDEOwnloader.Services.DataService
 {
     public class VideoInfoLocalDataService : IDataService
     {
+        public string YoutubeDlFilename { get; set; } = "youtube-dl.exe";
         private const string DefaultArguments = "";
 
         #region IDataService Members
@@ -41,7 +42,7 @@ namespace VIDEOwnloader.Services.DataService
         {
             try
             {
-                var startInfo = new ProcessStartInfo("youtube-dl.exe")
+                var startInfo = new ProcessStartInfo(YoutubeDlFilename)
                 {
                     Arguments = $"--ignore-errors --get-url {url}",
                     CreateNoWindow = true,
@@ -100,7 +101,7 @@ namespace VIDEOwnloader.Services.DataService
         {
             try
             {
-                var startInfo = new ProcessStartInfo("youtube-dl.exe")
+                var startInfo = new ProcessStartInfo(YoutubeDlFilename)
                 {
                     Arguments = $"--ignore-errors --ignore-config --flat-playlist --dump-single-json {url}",
                     CreateNoWindow = true,
