@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TabControl>
+        <TabControl Padding="0">
             <TabItem Header="About">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Grid HorizontalAlignment="Center" Margin="0,0,0,16">
@@ -39,7 +39,7 @@
                 </StackPanel>
             </TabItem>
             <TabItem Header="License">
-                <Border Background="White" BorderBrush="LightGray" BorderThickness="1">
+                <Border Background="White">
                     <ScrollViewer>
                         <!-- Margin property is for hiding the bottom color line of textbox -->
                         <TextBox Padding="4,2" Text="{Binding LicenseText, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="True" IsReadOnlyCaretVisible="False" Margin="0,0,0,-4" />
