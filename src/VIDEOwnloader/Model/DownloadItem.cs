@@ -20,125 +20,78 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Xml.Serialization;
-using GalaSoft.MvvmLight;
 using VIDEOwnloader.Base.Video;
-using VIDEOwnloader.Common;
+using VIDEOwnloader.Common.Downloader;
 
 namespace VIDEOwnloader.Model
 {
-    public interface IDownloadable
+    //[Serializable]
+    //public class PlaylistDownloadItem : DownloadItem
+    //{
+    //    public override string DownloadCompletedStatusText => $"Saved in {Path.GetFullPath(SavePath)}";
+
+    //    public Playlist Playlist { get; set; }
+
+    //    public string SavePath { get; set; }
+    //}
+
+    public class DesignVideoDownloadItem : VideoDownloadItem
     {
-        string Title { get; set; }
-        string Url { get; set; }
-    }
+        public DesignVideoDownloadItem()
+            : base(null, null, null)
+        {
+        }
 
-    [Serializable]
-    public class PlaylistDownloadItem : DownloadItem
-    {
-        public override string DownloadCompletedStatusText => $"Saved in {Path.GetFullPath(SavePath)}";
-
-        public Playlist Playlist { get; set; }
-
-        public string SavePath { get; set; }
+        public string DestinationPath { get; set; }
+        public new long DownloadedBytes { get; set; }
+        public new long TotalBytes { get; set; }
+        public new DownloadState State { get; set; }
     }
 
     [Serializable]
     public class VideoDownloadItem : DownloadItem
     {
-        public override string DownloadCompletedStatusText => $"Saved as {Path.GetFileName(Filename)}";
+        public VideoDownloadItem(Video video, VideoFormat videoFormat, string targetFileName)
+            : base(new Uri(videoFormat.Url), targetFileName)
+        {
+            Video = video;
+            VideoFormat = videoFormat;
+        }
 
-        public string Filename { get; set; }
+        public override string DownloadCompletedStatusText => $"Saved as {Path.GetFileName(TargetFileName)}";
 
         public Video Video { get; set; }
 
         public VideoFormat VideoFormat { get; set; }
     }
 
-    [XmlInclude(typeof(PlaylistDownloadItem))]
+    //[XmlInclude(typeof(PlaylistDownloadItem))]
     [XmlInclude(typeof(VideoDownloadItem))]
     [Serializable]
-    public abstract class DownloadItem : ObservableObject
+    public class DownloadItem : DownloadSession
     {
-        private long _downloadedBytes;
-        private bool _isCanceled;
-        private bool _isDownloaded;
-        private bool _isDownloading;
-        private bool _isPaused;
-        private float _progressValue;
+        private DownloadState _state;
         private string _statusText;
-        private long _totalSize;
 
-        [XmlIgnore]
-        public bool CanBeCancelled => IsDownloading || IsPaused;
-
-        [XmlIgnore]
-        public bool CanBePaused => false; // TODO: add pause support
-
-        [XmlIgnore]
-        public bool CanBeRemoved => IsCanceled || IsDownloaded;
-
-        public abstract string DownloadCompletedStatusText { get; }
-
-        public long DownloadedBytes
+        protected DownloadItem(Uri source, string targetFileName) : base(source, targetFileName)
         {
-            get { return _downloadedBytes; }
-            set { Set(ref _downloadedBytes, value); }
+            StateChanged += OnStateChanged;
         }
 
         [XmlIgnore]
-        public IEtaCalculator EtaCalculator { get; set; }
+        public bool CanBeRemoved => (State == DownloadState.Cancelled) || (State == DownloadState.Success);
+
+        public virtual string DownloadCompletedStatusText => $"Saved in {Path.GetFullPath(TargetFileName)}";
 
         public string ErrorText { get; set; }
 
-        public bool IsCanceled
-        {
-            get { return _isCanceled; }
-            set
-            {
-                Set(ref _isCanceled, value);
-                RaisePropertyChanged(() => CanBeRemoved);
-            }
-        }
-
-        public bool IsDownloaded
-        {
-            get { return _isDownloaded; }
-            set
-            {
-                Set(ref _isDownloaded, value);
-                RaisePropertyChanged(() => CanBeRemoved);
-            }
-        }
-
-        public bool IsDownloading
-        {
-            get { return _isDownloading; }
-            set
-            {
-                Set(ref _isDownloading, value);
-                RaisePropertyChanged(() => CanBeCancelled);
-            }
-        }
-
-        public bool IsPaused
-        {
-            get { return _isPaused; }
-            set
-            {
-                Set(ref _isPaused, value);
-                RaisePropertyChanged(() => CanBeCancelled);
-            }
-        }
+        public bool IsCanceled => State == DownloadState.Cancelled;
+        public bool IsDownloaded => State == DownloadState.Success;
+        public bool IsDownloading => State == DownloadState.Downloading;
+        public bool IsPaused => State == DownloadState.Paused;
 
         public DateTime LastStatusUpdateTime { get; set; }
-
-        public float ProgressValue
-        {
-            get { return _progressValue; }
-            set { Set(ref _progressValue, value); }
-        }
 
         public string StatusText
         {
@@ -146,13 +99,9 @@ namespace VIDEOwnloader.Model
             set { Set(ref _statusText, value); }
         }
 
-        public long TotalBytes
+        private void OnStateChanged(object sender, DownloadSessionStateChangedEventArgs args)
         {
-            get { return _totalSize; }
-            set { Set(ref _totalSize, value); }
+            RaisePropertyChanged(() => CanBeRemoved);
         }
-
-        [XmlIgnore]
-        public WebClient WebClient { get; set; } = new WebClient();
     }
 }

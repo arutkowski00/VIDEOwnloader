@@ -210,12 +210,7 @@ namespace VIDEOwnloader.ViewModel
                         if (isSuccess)
                             if (ResultItem is Video)
                             {
-                                var downloadItem = new VideoDownloadItem
-                                {
-                                    Video = (Video)ResultItem,
-                                    VideoFormat = VideoFormat,
-                                    Filename = VideoSavePath
-                                };
+                                var downloadItem = new VideoDownloadItem((Video)ResultItem, VideoFormat, VideoSavePath);
                                 MessengerInstance.Send(downloadItem);
                             }
                             else if (ResultItem is VideoPlaylist)

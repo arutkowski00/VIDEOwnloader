@@ -21,12 +21,11 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Net;
 using GalaSoft.MvvmLight.CommandWpf;
 using MaterialDesignThemes.Wpf;
 using VIDEOwnloader.Common;
+using VIDEOwnloader.Common.Downloader;
 using VIDEOwnloader.Common.Extensions;
 using VIDEOwnloader.Model;
 using VIDEOwnloader.Properties;
@@ -86,13 +85,11 @@ namespace VIDEOwnloader.ViewModel
         public RelayCommand<DownloadItem> CancelDownloadCommand
             => _cancelDownloadCommand ?? (_cancelDownloadCommand = new RelayCommand<DownloadItem>(CancelDownload));
 
-        [RaisePropertyChanged]
         public ObservableCollection<DownloadItem> CompletedList { get; private set; } =
             new ObservableCollection<DownloadItem>();
 
         private IDataService DataService { get; }
 
-        [RaisePropertyChanged]
         public ObservableCollection<DownloadItem> DownloadList { get; private set; } =
             new ObservableCollection<DownloadItem>();
 
@@ -113,25 +110,25 @@ namespace VIDEOwnloader.ViewModel
                     new ObservableCollection<DownloadItem>(
                         res.Videos.Select(
                             x =>
-                                new VideoDownloadItem
+                                new DesignVideoDownloadItem
                                 {
-                                    Filename = "test." + (x.Ext ?? "mp4"),
+                                    DestinationPath = "test." + (x.Ext ?? "mp4"),
                                     Video = x,
                                     VideoFormat = x.Formats[random.Next(0, x.Formats.Length - 1)],
                                     DownloadedBytes = (uint)(random.NextDouble()*4 + 2)*1048576,
                                     TotalBytes = (uint)(random.NextDouble()*10 + 8)*1048576,
-                                    IsDownloading = true
+                                    State = DownloadState.Downloading
                                 }));
 
                 CompletedList =
                     new ObservableCollection<DownloadItem>(
                         res.Videos.Select(
-                            x => new VideoDownloadItem
+                            x => new DesignVideoDownloadItem
                             {
-                                Filename = "test." + (x.Ext ?? "mp4"),
+                                DestinationPath = "test." + (x.Ext ?? "mp4"),
                                 Video = x,
                                 VideoFormat = x.Formats[random.Next(0, x.Formats.Length - 1)],
-                                IsDownloaded = true
+                                State = DownloadState.Success
                             }));
 
                 foreach (var downloadItem in CompletedList.Union(DownloadList))
@@ -150,8 +147,7 @@ namespace VIDEOwnloader.ViewModel
                 var downloadItems = DownloadList.ToArray();
                 foreach (var downloadItem in downloadItems)
                 {
-                    downloadItem.IsDownloading = false;
-                    downloadItem.IsCanceled = true;
+                    downloadItem.CancelAsync();
                     SetDownloadItemStatusText(downloadItem);
                 }
                 Settings.Default.DownloadListXml = XmlTools.Serialize(downloadItems);
@@ -162,17 +158,36 @@ namespace VIDEOwnloader.ViewModel
 
         private void CancelDownload(DownloadItem item)
         {
-            item?.WebClient.CancelAsync();
+            item?.CancelAsync();
         }
 
-        private void HandleNewVideoDownload(VideoDownloadItem downloadItem)
+        private async void HandleNewVideoDownload(VideoDownloadItem downloadItem)
         {
-            downloadItem.WebClient.DownloadProgressChanged += WebClientOnDownloadProgressChanged;
-            downloadItem.WebClient.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
-            downloadItem.WebClient.DownloadFileAsync(new Uri(downloadItem.VideoFormat.Url), downloadItem.Filename,
-                downloadItem);
-            downloadItem.EtaCalculator = new EtaCalculator(2, 15);
+            downloadItem.DownloadProgressChanged += DownloadItem_DownloadProgressChanged;
+            //downloadItem.DownloadSession.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
             DownloadList.Add(downloadItem);
+            await downloadItem.DownloadAsync();
+
+            if (downloadItem.State == DownloadState.Success)
+            {
+                DownloadList.Remove(downloadItem);
+                CompletedList.Add(downloadItem);
+            }
+            // TODO: failures handling
+            SetDownloadItemStatusText(downloadItem);
+        }
+
+        private void DownloadItem_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            var downloadItem = e.Session as DownloadItem;
+            if (downloadItem == null)
+                return;
+
+            if (DateTime.Now - downloadItem.LastStatusUpdateTime > _updateProgressTimeSpan)
+            {
+                SetDownloadItemStatusText(downloadItem);
+                downloadItem.LastStatusUpdateTime = DateTime.Now;
+            }
         }
 
         private void RemoveDownloadItem(DownloadItem item)
@@ -184,33 +199,37 @@ namespace VIDEOwnloader.ViewModel
 
         private void SetDownloadItemStatusText(DownloadItem downloadItem)
         {
-            string statusText;
-            if (downloadItem.ErrorText != null)
+            var statusText = string.Empty;
+            //if (downloadItem.ErrorText != null)
+            //{
+            //    statusText = $"Error: {downloadItem.ErrorText.Decapitalize()}";
+            //}
+
+            switch (downloadItem.State)
             {
-                statusText = $"Error: {downloadItem.ErrorText.Decapitalize()}";
-            }
-            else if (downloadItem.IsDownloading)
-            {
-                var progressText =
-                    $"{downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
-                if (downloadItem.EtaCalculator == null)
-                    statusText = progressText;
-                else if (downloadItem.EtaCalculator.EtaIsAvailable)
-                    statusText = progressText + $", {downloadItem.EtaCalculator.Etr.ToReadableString()}";
-                else statusText = progressText + ", estimating time...";
-            }
-            else if (downloadItem.IsPaused)
-            {
-                statusText =
-                    $"Paused, {downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
-            }
-            else if (downloadItem.IsCanceled)
-            {
-                statusText = "Cancelled";
-            }
-            else
-            {
-                statusText = downloadItem.IsDownloaded ? downloadItem.DownloadCompletedStatusText : "Preparing...";
+                case DownloadState.Ready:
+                    statusText = downloadItem.IsDownloaded ? downloadItem.DownloadCompletedStatusText : "Preparing...";
+                    break;
+                case DownloadState.Downloading:
+                    var progressText =
+                        $"{downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
+                    if (downloadItem.EtaCalculator == null)
+                        statusText = progressText;
+                    else if (downloadItem.EtaCalculator.EtaIsAvailable)
+                        statusText = progressText + $", {downloadItem.EtaCalculator.Etr.ToReadableString()}";
+                    else statusText = progressText + ", estimating time...";
+                    break;
+                case DownloadState.Success:
+                    break;
+                case DownloadState.Paused:
+                    statusText =
+                        $"Paused, {downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
+                    break;
+                case DownloadState.Cancelled:
+                    statusText = "Cancelled";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             downloadItem.StatusText = statusText;
@@ -220,59 +239,6 @@ namespace VIDEOwnloader.ViewModel
         {
             var view = new NewDownloadDialog();
             await DialogHost.Show(view, "RootDialog");
-        }
-
-        private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs args)
-        {
-            var downloadItem = args.UserState as DownloadItem;
-            if (downloadItem == null) return;
-            downloadItem.IsDownloading = false;
-            downloadItem.EtaCalculator = null;
-
-            if ((args.Error != null) || args.Cancelled)
-            {
-                downloadItem.IsCanceled = true;
-
-                if (downloadItem is VideoDownloadItem)
-                {
-                    var videoItem = (VideoDownloadItem)downloadItem;
-                    if (File.Exists(videoItem.Filename))
-                        File.Delete(videoItem.Filename);
-                }
-                // TODO: handle playlists
-
-                if (args.Error != null)
-                    downloadItem.ErrorText = args.Error.GetFullMessage();
-            }
-            else
-            {
-                downloadItem.IsDownloaded = true;
-                DownloadList.Remove(downloadItem);
-                CompletedList.Add(downloadItem);
-            }
-            SetDownloadItemStatusText(downloadItem);
-        }
-
-        private void WebClientOnDownloadProgressChanged(object sender,
-            DownloadProgressChangedEventArgs args)
-        {
-            var downloadItem = args.UserState as DownloadItem;
-            if (downloadItem == null)
-                return;
-            if (!downloadItem.IsDownloading)
-                downloadItem.IsDownloading = true;
-
-            downloadItem.DownloadedBytes = args.BytesReceived;
-            downloadItem.TotalBytes = args.TotalBytesToReceive;
-            var progressValue = (float)downloadItem.DownloadedBytes/downloadItem.TotalBytes;
-            downloadItem.ProgressValue = progressValue;
-            downloadItem.EtaCalculator?.Update(progressValue);
-
-            if (DateTime.Now - downloadItem.LastStatusUpdateTime > _updateProgressTimeSpan)
-            {
-                SetDownloadItemStatusText(downloadItem);
-                downloadItem.LastStatusUpdateTime = DateTime.Now;
-            }
         }
     }
 }

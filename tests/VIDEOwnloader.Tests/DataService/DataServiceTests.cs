@@ -21,13 +21,14 @@
 using System.IO;
 using NUnit.Framework;
 using VIDEOwnloader.Services.DataService;
+using VIDEOwnloader.Tests.Common;
 
 namespace VIDEOwnloader.Test.DataService
 {
     [TestFixture]
     public class DataServiceTests
     {
-        private readonly IDataService _dataService = new VideoInfoLocalDataService();
+        private readonly IDataService _dataService = DataServiceHelper.GetLocalDataService();
 
         private readonly string[] _urls =
         {
@@ -35,16 +36,6 @@ namespace VIDEOwnloader.Test.DataService
             "https://www.youtube.com/playlist?list=PLbpi6ZahtOH66hnix9rPjEMxT3kNGXVTO", // one playlist
             "http://isitfridayyet.net/" // one invalid
         };
-
-        [OneTimeSetUp]
-        public void Setup()
-        {
-            if (_dataService is VideoInfoLocalDataService)
-            {
-                ((VideoInfoLocalDataService)_dataService).YoutubeDlFilename =
-                    Path.Combine(TestContext.CurrentContext.TestDirectory, "youtube-dl.exe");
-            }
-        }
 
         [Test]
         public void GetValid_ShouldBeInvalid_WhenGivenBadUrl()

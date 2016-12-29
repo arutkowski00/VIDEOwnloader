@@ -145,6 +145,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\Downloader\DownloadProgressChangedEventArgs.cs" />
+    <Compile Include="Common\Downloader\DownloadSessionStateChangedEventArgs.cs" />
+    <Compile Include="Common\Downloader\DownloadSession.cs" />
+    <Compile Include="Common\Downloader\DownloadState.cs" />
     <Compile Include="Common\EtaCalculator.cs" />
     <Compile Include="Common\Extensions\ExceptionExtensions.cs" />
     <Compile Include="Common\FrameNavigationService.cs" />
@@ -156,8 +160,6 @@
     <Compile Include="Converter\MultiVisibilityConverter.cs" />
     <Compile Include="Converter\NotNullOrEmptyToVisibilityConverter.cs" />
     <Compile Include="Converter\NumberGroupSeparatorConverter.cs" />
-    <Compile Include="Common\RaisePropertyChangedAttribute.cs" />
-    <Compile Include="Common\RaisePropertyChangedCallHandler.cs" />
     <Compile Include="Converter\BytesToFileSizeConverter.cs" />
     <Compile Include="Converter\SecondsToTimeStringConverter.cs" />
     <Compile Include="Common\Extensions\TimeSpanExtensions.cs" />
