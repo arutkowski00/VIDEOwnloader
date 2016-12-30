@@ -17,10 +17,10 @@ namespace VIDEOwnloader.Tests.Downloader
         private readonly Random random = new Random();
         private readonly Randomizer randomizer = new Randomizer();
 
-        private async Task<VideoFormat> GetTestVideoFormat()
+        private async Task<VideoFormat> GetTestVideoFormat(string url = null)
         {
             VideoFormat format = null;
-            await _dataService.GetVideoAsync("https://www.youtube.com/watch?v=B7bqAsxee4I", (response, exception) =>
+            await _dataService.GetVideoAsync(url ?? "https://www.youtube.com/watch?v=B7bqAsxee4I", (response, exception) =>
             {
                 if (exception != null)
                     throw exception;
@@ -36,8 +36,13 @@ namespace VIDEOwnloader.Tests.Downloader
         [Test]
         public async Task Download_ShouldBeSuccessfulAndFileExist_WhenGivenGoodUrl()
         {
+            // given new download session with test video URI
             var downloadSession = await GetTestDownloadSession();
+
+            // when I try to download the file
             await downloadSession.DownloadAsync();
+
+            // then it should be successful and file with non-zero length should exist
             Assert.AreEqual(DownloadState.Success, downloadSession.State);
             Assert.True(File.Exists(downloadSession.TargetFileName));
             var fileInfo = new FileInfo(downloadSession.TargetFileName);
@@ -45,16 +50,41 @@ namespace VIDEOwnloader.Tests.Downloader
         }
 
         [Test]
+        public void Download_ShouldBeFailedAndFileNotExist_WhenGivenBadUrl()
+        {
+            // given new download session with invalid URI
+            var downloadUri = new Uri("https://www.y0u7ub3.c0m/w47ch?v=M29PRpdYbaM");
+            var targetFileName = randomizer.GetString(8) + ".test";
+            var downloadSession = new DownloadSession(downloadUri, targetFileName);
+
+            // when I try to download the file
+            // then it should throw an exception...
+            Assert.CatchAsync(async () =>
+            {
+                await downloadSession.DownloadAsync();
+            });
+            // ... and it should be marked as failed and file should not exists
+            Assert.AreEqual(DownloadState.Failed, downloadSession.State);
+            Assert.AreEqual(0, downloadSession.DownloadedBytes);
+            Assert.False(File.Exists(downloadSession.TargetFileName));
+        }
+
+        [Test]
         public async Task Download_ShouldBeCancelledAndFileNotExist_WhenCancelInvoked()
         {
+            // given new download session with test video URI
             var downloadSession = await GetTestDownloadSession();
+            // when I cancel the download on very first progress achieved...
             downloadSession.DownloadProgressChanged += async (sender, args) =>
             {
                 Assert.AreEqual(DownloadState.Downloading, downloadSession.State);
                 // Cancel download session on the first download progress
                 await args.Session.CancelAsync();
             };
+            // and I try to download the file
             await downloadSession.DownloadAsync();
+
+            // then it should be cancelled and both target and partial files should not exist
             Assert.AreEqual(DownloadState.Cancelled, downloadSession.State);
             Assert.False(File.Exists(downloadSession.PartFilename));
             Assert.False(File.Exists(downloadSession.TargetFileName));

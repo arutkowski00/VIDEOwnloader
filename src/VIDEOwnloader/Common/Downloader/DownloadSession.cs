@@ -98,9 +98,6 @@ namespace VIDEOwnloader.Common.Downloader
             _downloadTask = DownloadAsyncInternal(_cancellationTokenSource.Token);
             await _downloadTask.ContinueWith(task =>
             {
-                if (task.Exception != null)
-                    throw task.Exception;
-
                 if (_requestedState.HasValue)
                 {
                     State = _requestedState.Value;
@@ -118,6 +115,13 @@ namespace VIDEOwnloader.Common.Downloader
                 {
                     State = DownloadState.Success;
                 }
+
+                if (task.Exception == null) return;
+                if (File.Exists(PartFilename))
+                    File.Delete(PartFilename);
+                if (File.Exists(TargetFileName))
+                    File.Delete(TargetFileName);
+                throw task.Exception;
             });
         }
 
@@ -218,7 +222,11 @@ namespace VIDEOwnloader.Common.Downloader
 
             if (!_cancellationTokenSource.IsCancellationRequested)
                 _cancellationTokenSource.Cancel();
-            await _downloadTask.ContinueWith((task, o) => { File.Delete(PartFilename); }, null);
+            await _downloadTask.ContinueWith((task, o) =>
+            {
+                if (File.Exists(PartFilename))
+                    File.Delete(PartFilename);
+            }, null);
         }
 
         private void OnDownloadProgressChanged()
