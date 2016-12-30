@@ -20,6 +20,7 @@ namespace VIDEOwnloader.Common.Downloader
         private long _downloadedBytes;
         private Task _downloadTask;
         private DateTime? _lastRequestDate;
+        private DownloadState? _requestedState;
         private DownloadState _state;
         private long _totalBytes;
 
@@ -79,7 +80,7 @@ namespace VIDEOwnloader.Common.Downloader
         public string PartFilename => TargetFileName + ".part";
 
         [XmlIgnore]
-        public float ProgressValue => (float)DownloadedBytes/TotalBytes;
+        public float ProgressValue => (float)DownloadedBytes / TotalBytes;
 
         public Uri Source { get; }
         public string TargetFileName { get; }
@@ -99,6 +100,24 @@ namespace VIDEOwnloader.Common.Downloader
             {
                 if (task.Exception != null)
                     throw task.Exception;
+
+                if (_requestedState.HasValue)
+                {
+                    State = _requestedState.Value;
+                    _requestedState = null;
+                }
+                else if (task.IsCanceled)
+                {
+                    State = DownloadState.Cancelled;
+                }
+                else if (task.IsFaulted)
+                {
+                    State = DownloadState.Failed;
+                }
+                else
+                {
+                    State = DownloadState.Success;
+                }
             });
         }
 
@@ -161,7 +180,7 @@ namespace VIDEOwnloader.Common.Downloader
 
                 using (var fileStream = new FileStream(PartFilename, fileMode, FileAccess.Write, FileShare.None))
                 {
-                    var buffer = new byte[64*1024];
+                    var buffer = new byte[64 * 1024];
 
                     int read;
                     while (
@@ -182,22 +201,24 @@ namespace VIDEOwnloader.Common.Downloader
         {
             if (!CanBePaused || (State != DownloadState.Downloading)) return;
 
+            if (!_requestedState.HasValue)
+                _requestedState = DownloadState.Paused;
+
             if (!_cancellationTokenSource.IsCancellationRequested)
                 _cancellationTokenSource.Cancel();
-            await _downloadTask.ContinueWith((task, o) => { State = DownloadState.Paused; }, null);
+            await Task.WhenAll(_downloadTask);
         }
 
         public async Task CancelAsync()
         {
             if (!CanBeCancelled) return;
 
+            if (!_requestedState.HasValue)
+                _requestedState = DownloadState.Cancelled;
+
             if (!_cancellationTokenSource.IsCancellationRequested)
                 _cancellationTokenSource.Cancel();
-            await _downloadTask.ContinueWith((task, o) =>
-            {
-                File.Delete(PartFilename);
-                State = DownloadState.Cancelled;
-            }, null);
+            await _downloadTask.ContinueWith((task, o) => { File.Delete(PartFilename); }, null);
         }
 
         private void OnDownloadProgressChanged()
@@ -205,7 +226,7 @@ namespace VIDEOwnloader.Common.Downloader
             DownloadProgressChanged?.Invoke(this, new DownloadProgressChangedEventArgs(this));
         }
 
-        protected void OnStateChanged(DownloadState oldState, DownloadState newState)
+        private void OnStateChanged(DownloadState oldState, DownloadState newState)
         {
             StateChanged?.Invoke(this, new DownloadSessionStateChangedEventArgs(this, oldState, newState));
         }

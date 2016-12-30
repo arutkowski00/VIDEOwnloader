@@ -6,6 +6,7 @@
         Downloading,
         Success,
         Paused,
-        Cancelled
+        Cancelled,
+        Failed
     }
 }
