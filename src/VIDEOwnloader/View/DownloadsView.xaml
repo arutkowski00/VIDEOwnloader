@@ -49,27 +49,40 @@
                         </StackPanel>
                         <TextBlock Text="{Binding StatusText}" TextTrimming="WordEllipsis" />
                     </StackPanel>
-                    <Button x:Name="StopButton" Grid.Column="2" Margin="5,0,0,0"
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="5,0,0,0" HorizontalAlignment="Right">
+                        <Button x:Name="StopButton" 
                             material:RippleAssist.IsDisabled="True"
                             Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.CancelDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
-                            HorizontalAlignment="Right" Foreground="{DynamicResource Primary700Brush}" ToolTip="Cancel">
-                        <material:PackIcon Kind="StopCircleOutline" />
-                    </Button>
-                    <Button x:Name="RemoveButton" Grid.Column="2" Margin="5,0,0,0"
+                            Foreground="{DynamicResource Primary700Brush}" ToolTip="Cancel">
+                            <material:PackIcon Kind="StopCircleOutline" />
+                        </Button>
+                        <Button x:Name="OpenFolderButton"
+                            material:RippleAssist.IsDisabled="True"
+                            Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.OpenFolderCommand}"
+                            CommandParameter="{Binding Mode=OneWay}"
+                            Style="{DynamicResource MaterialDesignToolButton}"
+                            Foreground="Gray" ToolTip="Open containing folder">
+                            <material:PackIcon Kind="Folder" />
+                        </Button>
+                        <Button x:Name="RemoveButton"
                             material:RippleAssist.IsDisabled="True"
                             Command="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.RemoveDownloadCommand}"
                             CommandParameter="{Binding Mode=OneWay}"
                             Style="{DynamicResource MaterialDesignToolButton}"
-                            HorizontalAlignment="Right" Foreground="Gray" ToolTip="Remove">
-                        <material:PackIcon Kind="Close" />
-                    </Button>
+                            Foreground="Gray" ToolTip="Remove">
+                            <material:PackIcon Kind="Close" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding CanBeCancelled}" Value="False">
                     <Setter TargetName="StopButton" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsDownloaded}" Value="False">
+                    <Setter TargetName="OpenFolderButton" Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding CanBeRemoved}" Value="False">
                     <Setter TargetName="RemoveButton" Property="Visibility" Value="Collapsed" />

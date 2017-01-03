@@ -189,9 +189,12 @@ namespace VIDEOwnloader.Common.Downloader
             headRequest.Method = "HEAD";
             headRequest.AllowAutoRedirect = false;
 
+            var partFileInfo = new FileInfo(PartFilename);
             var tryResume = (State == DownloadState.Paused) && _lastRequestDate.HasValue;
             if (tryResume)
                 headRequest.IfModifiedSince = _lastRequestDate.Value;
+            else if (partFileInfo.Exists)
+                partFileInfo.Delete();
 
             State = DownloadState.Downloading;
             var getRequest = WebRequest.CreateHttp(Source);
@@ -203,7 +206,6 @@ namespace VIDEOwnloader.Common.Downloader
                                   ((response.LastModified != default(DateTime)) &&
                                    (response.LastModified < _lastRequestDate.Value))))
                 {
-                    var partFileInfo = new FileInfo(PartFilename);
                     if (partFileInfo.Exists)
                     {
                         DownloadedBytes = partFileInfo.Length;
@@ -254,6 +256,8 @@ namespace VIDEOwnloader.Common.Downloader
                         OnDownloadProgressChanged();
                     }
                 }
+                if (File.Exists(TargetFileName))
+                    File.Delete(TargetFileName);
                 File.Move(PartFilename, TargetFileName);
             }
         }

@@ -21,9 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight.CommandWpf;
 using MaterialDesignThemes.Wpf;
 using VIDEOwnloader.Common;
@@ -44,6 +47,7 @@ namespace VIDEOwnloader.ViewModel
 
         private RelayCommand<DownloadItem> _cancelDownloadCommand;
         private RelayCommand _newDownloadCommand;
+        private RelayCommand<DownloadItem> _openFolderCommand;
         private RelayCommand<DownloadItem> _pauseDownloadCommand;
         private RelayCommand<DownloadItem> _removeDownloadCommand;
         private RelayCommand<DownloadItem> _unpauseDownloadCommand;
@@ -100,6 +104,9 @@ namespace VIDEOwnloader.ViewModel
 
         public RelayCommand NewDownloadCommand
             => _newDownloadCommand ?? (_newDownloadCommand = new RelayCommand(ShowNewDownloadDialog));
+
+        public RelayCommand<DownloadItem> OpenFolderCommand
+            => _openFolderCommand ?? (_openFolderCommand = new RelayCommand<DownloadItem>(OpenDownloadItemFolder));
 
         public RelayCommand<DownloadItem> PauseDownloadCommand
             => _pauseDownloadCommand ?? (_pauseDownloadCommand = new RelayCommand<DownloadItem>(PauseDownloadItem));
@@ -167,13 +174,19 @@ namespace VIDEOwnloader.ViewModel
                 ((e.NewState == DownloadState.Cancelled) || (e.NewState == DownloadState.Failed) ||
                  (e.NewState == DownloadState.Success)))
             {
-                DownloadList.Remove(downloadItem);
-                CompletedList.Add(downloadItem);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    DownloadList.Remove(downloadItem);
+                    CompletedList.Add(downloadItem);
+                });
             }
             else if (CompletedList.Contains(downloadItem))
             {
-                CompletedList.Remove(downloadItem);
-                DownloadList.Add(downloadItem);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    CompletedList.Remove(downloadItem);
+                    DownloadList.Add(downloadItem);
+                });
             }
             SetDownloadItemStatusText(downloadItem);
         }
@@ -185,6 +198,20 @@ namespace VIDEOwnloader.ViewModel
             //downloadItem.DownloadSession.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
             DownloadList.Add(downloadItem);
             await downloadItem.DownloadAsync(false);
+        }
+
+        private void OpenDownloadItemFolder(DownloadItem downloadItem)
+        {
+            if (File.Exists(downloadItem.TargetFileName))
+            {
+                Process.Start("explorer.exe", $"/select,{downloadItem.TargetFileName}");
+            }
+            else
+            {
+                var directoryPath = Path.GetDirectoryName(downloadItem.TargetFileName) + Path.DirectorySeparatorChar;
+                if (Directory.Exists(directoryPath))
+                    Process.Start("explorer.exe", directoryPath);
+            }
         }
 
         private async void PauseDownloadItem(DownloadItem downloadItem)
