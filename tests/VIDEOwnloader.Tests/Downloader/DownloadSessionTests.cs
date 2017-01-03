@@ -58,14 +58,20 @@ namespace VIDEOwnloader.Tests.Downloader
             var downloadSession = new DownloadSession(downloadUri, targetFileName);
 
             // when I try to download the file
-            // then it should throw an exception...
+            // then it should throw an exception with no parameters...
             Assert.CatchAsync(async () =>
             {
                 await downloadSession.DownloadAsync();
             });
+            // and it shouldn't throw an exception with throwOnFailure = false...
+            Assert.DoesNotThrowAsync(async () =>
+            {
+                await downloadSession.DownloadAsync(false);
+            });
             // ... and it should be marked as failed and file should not exists
             Assert.AreEqual(DownloadState.Failed, downloadSession.State);
             Assert.AreEqual(0, downloadSession.DownloadedBytes);
+            Assert.IsNotNull(downloadSession.Error);
             Assert.False(File.Exists(downloadSession.TargetFileName));
         }
 

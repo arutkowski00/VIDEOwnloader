@@ -45,8 +45,8 @@ namespace VIDEOwnloader.Model
 
         public string DestinationPath { get; set; }
         public new long DownloadedBytes { get; set; }
-        public new long TotalBytes { get; set; }
         public new DownloadState State { get; set; }
+        public new long TotalBytes { get; set; }
     }
 
     [Serializable]
@@ -57,6 +57,10 @@ namespace VIDEOwnloader.Model
         {
             Video = video;
             VideoFormat = videoFormat;
+        }
+
+        private VideoDownloadItem()
+        {
         }
 
         public override string DownloadCompletedStatusText => $"Saved as {Path.GetFileName(TargetFileName)}";
@@ -71,8 +75,11 @@ namespace VIDEOwnloader.Model
     [Serializable]
     public class DownloadItem : DownloadSession
     {
-        private DownloadState _state;
         private string _statusText;
+
+        protected DownloadItem()
+        {
+        }
 
         protected DownloadItem(Uri source, string targetFileName) : base(source, targetFileName)
         {
@@ -80,15 +87,25 @@ namespace VIDEOwnloader.Model
         }
 
         [XmlIgnore]
-        public bool CanBeRemoved => (State == DownloadState.Cancelled) || (State == DownloadState.Success);
+        public bool CanBeRemoved => IsCanceled || IsDownloaded || IsFailed;
 
+        [XmlIgnore]
         public virtual string DownloadCompletedStatusText => $"Saved in {Path.GetFullPath(TargetFileName)}";
 
-        public string ErrorText { get; set; }
 
+        [XmlIgnore]
         public bool IsCanceled => State == DownloadState.Cancelled;
+
+        [XmlIgnore]
         public bool IsDownloaded => State == DownloadState.Success;
+
+        [XmlIgnore]
         public bool IsDownloading => State == DownloadState.Downloading;
+
+        [XmlIgnore]
+        public bool IsFailed => State == DownloadState.Failed;
+
+        [XmlIgnore]
         public bool IsPaused => State == DownloadState.Paused;
 
         public DateTime LastStatusUpdateTime { get; set; }
@@ -102,6 +119,11 @@ namespace VIDEOwnloader.Model
         private void OnStateChanged(object sender, DownloadSessionStateChangedEventArgs args)
         {
             RaisePropertyChanged(() => CanBeRemoved);
+            RaisePropertyChanged(() => IsCanceled);
+            RaisePropertyChanged(() => IsDownloaded);
+            RaisePropertyChanged(() => IsDownloading);
+            RaisePropertyChanged(() => IsFailed);
+            RaisePropertyChanged(() => IsPaused);
         }
     }
 }

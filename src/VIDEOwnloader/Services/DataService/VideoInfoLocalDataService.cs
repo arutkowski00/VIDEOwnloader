@@ -33,8 +33,8 @@ namespace VIDEOwnloader.Services.DataService
 {
     public class VideoInfoLocalDataService : IDataService
     {
-        public string YoutubeDlFilename { get; set; } = "youtube-dl.exe";
         private const string DefaultArguments = "";
+        public string YoutubeDlFilename { get; set; } = "youtube-dl.exe";
 
         #region IDataService Members
 

@@ -30,7 +30,10 @@
                     <controls:PauseButton Grid.Column="0" ToolTip="Pause/Resume" x:Name="PauseToggleButton"
                                           VerticalAlignment="Center" IsEnabled="{Binding CanBePaused}"
                                           IsChecked="False" Style="{StaticResource PauseButtonStyle}"
-                                          Foreground="{DynamicResource Primary400ForegroundBrush}">
+                                          Foreground="{DynamicResource Primary400ForegroundBrush}"
+                                          PauseCommand="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.PauseDownloadCommand}"
+                                          UnpauseCommand="{Binding ElementName=DownloadsViewUserControl, Path=DataContext.UnpauseDownloadCommand}"
+                                          CommandParameter="{Binding Mode=OneWay}">
                         <controls:PauseButton.Content>
                             <Image Source="{Binding Video.Thumbnail}" Stretch="UniformToFill" />
                         </controls:PauseButton.Content>
@@ -97,7 +100,8 @@
                        LineHeight="21.333">
                 <Run Text="There's nothing to download." /><LineBreak /><Run Text="Add something by pressing" />
                 <InlineUIContainer>
-                    <material:PackIcon Kind="PlusCircle" Margin="0,0,0,-6" Width="24" Height="24" Foreground="{StaticResource Primary700Brush}" />
+                    <material:PackIcon Kind="PlusCircle" Margin="0,0,0,-6" Width="24" Height="24"
+                                       Foreground="{StaticResource Primary700Brush}" />
                 </InlineUIContainer>
                 <Run Text="button." />
             </TextBlock>

@@ -140,7 +140,8 @@ namespace VIDEOwnloader.Model
             RaiseCollectionChanged(NotifyCollectionChangedAction.Replace, sender);
         }
 
-        public async Task FillItemsInfo(IDataService dataService, CancellationToken cancellationToken = new CancellationToken())
+        public async Task FillItemsInfo(IDataService dataService,
+            CancellationToken cancellationToken = new CancellationToken())
         {
             var scheduler = new LimitedConcurrencyLevelTaskScheduler(5);
             var factory = new TaskFactory(scheduler);

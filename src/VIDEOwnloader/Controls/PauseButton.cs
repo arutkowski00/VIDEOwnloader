@@ -20,15 +20,76 @@
 
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 
 namespace VIDEOwnloader.Controls
 {
     public class PauseButton : ToggleButton
     {
+        public static readonly DependencyProperty PauseCommandProperty = DependencyProperty.Register(
+            "PauseCommand", typeof(ICommand), typeof(PauseButton), new PropertyMetadata(default(ICommand)));
+
+        public static readonly DependencyProperty PauseCommandParameterProperty = DependencyProperty.Register(
+            "PauseCommandParameter", typeof(object), typeof(PauseButton), new PropertyMetadata(default(object)));
+
+        public static readonly DependencyProperty UnpauseCommandParameterProperty = DependencyProperty.Register(
+            "UnpauseCommandParameter", typeof(object), typeof(PauseButton), new PropertyMetadata(default(object)));
+
+        public static readonly DependencyProperty UnpauseCommandProperty = DependencyProperty.Register(
+            "UnpauseCommand", typeof(ICommand), typeof(PauseButton), new PropertyMetadata(default(ICommand)));
+
         static PauseButton()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(PauseButton),
                 new FrameworkPropertyMetadata(typeof(PauseButton)));
+        }
+
+        public PauseButton()
+        {
+            Checked += PauseButton_Checked;
+            Unchecked += PauseButton_Unchecked;
+        }
+
+        public object UnpauseCommandParameter
+        {
+            get { return GetValue(UnpauseCommandParameterProperty); }
+            set { SetValue(UnpauseCommandParameterProperty, value); }
+        }
+
+        public object PauseCommandParameter
+        {
+            get { return GetValue(PauseCommandParameterProperty); }
+            set { SetValue(PauseCommandParameterProperty, value); }
+        }
+
+        public ICommand PauseCommand
+        {
+            get { return (ICommand)GetValue(PauseCommandProperty); }
+            set { SetValue(PauseCommandProperty, value); }
+        }
+
+        public ICommand UnpauseCommand
+        {
+            get { return (ICommand)GetValue(UnpauseCommandProperty); }
+            set { SetValue(UnpauseCommandProperty, value); }
+        }
+
+        private void PauseButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (PauseCommand == null) return;
+
+            var parameter = PauseCommandParameter ?? DataContext;
+            if (PauseCommand.CanExecute(parameter))
+                PauseCommand.Execute(parameter);
+        }
+
+        private void PauseButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (UnpauseCommand == null) return;
+
+            var parameter = UnpauseCommandParameter ?? DataContext;
+            if (UnpauseCommand.CanExecute(parameter))
+                UnpauseCommand.Execute(parameter);
         }
     }
 }

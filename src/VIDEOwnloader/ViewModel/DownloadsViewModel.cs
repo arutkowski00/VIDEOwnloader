@@ -19,9 +19,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using GalaSoft.MvvmLight.CommandWpf;
 using MaterialDesignThemes.Wpf;
 using VIDEOwnloader.Common;
@@ -42,7 +44,9 @@ namespace VIDEOwnloader.ViewModel
 
         private RelayCommand<DownloadItem> _cancelDownloadCommand;
         private RelayCommand _newDownloadCommand;
+        private RelayCommand<DownloadItem> _pauseDownloadCommand;
         private RelayCommand<DownloadItem> _removeDownloadCommand;
+        private RelayCommand<DownloadItem> _unpauseDownloadCommand;
 
         public DownloadsViewModel(IDataService dataService)
         {
@@ -77,6 +81,7 @@ namespace VIDEOwnloader.ViewModel
 
             MessengerInstance.Register<VideoDownloadItem>(this, HandleNewVideoDownload);
             //MessengerInstance.Register<PlaylistDownloadItem>(this, HandleNewPlaylistDownload);
+            Application.Current.Exit += (sender, args) => Cleanup();
         }
 
         public bool AreItemsInCompletedList => CompletedList.Count > 0;
@@ -88,8 +93,6 @@ namespace VIDEOwnloader.ViewModel
         public ObservableCollection<DownloadItem> CompletedList { get; private set; } =
             new ObservableCollection<DownloadItem>();
 
-        private IDataService DataService { get; }
-
         public ObservableCollection<DownloadItem> DownloadList { get; private set; } =
             new ObservableCollection<DownloadItem>();
 
@@ -98,8 +101,89 @@ namespace VIDEOwnloader.ViewModel
         public RelayCommand NewDownloadCommand
             => _newDownloadCommand ?? (_newDownloadCommand = new RelayCommand(ShowNewDownloadDialog));
 
+        public RelayCommand<DownloadItem> PauseDownloadCommand
+            => _pauseDownloadCommand ?? (_pauseDownloadCommand = new RelayCommand<DownloadItem>(PauseDownloadItem));
+
         public RelayCommand<DownloadItem> RemoveDownloadCommand
             => _removeDownloadCommand ?? (_removeDownloadCommand = new RelayCommand<DownloadItem>(RemoveDownloadItem));
+
+        public RelayCommand<DownloadItem> UnpauseDownloadCommand
+            =>
+            _unpauseDownloadCommand ?? (_unpauseDownloadCommand = new RelayCommand<DownloadItem>(UnpauseDownloadItem));
+
+        private IDataService DataService { get; }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+            MessengerInstance.Unregister(this);
+            Settings.Default.CompletedListXml = CompletedList.Count > 0
+                ? XmlTools.Serialize(CompletedList.ToArray())
+                : string.Empty;
+
+            if (DownloadList.Count > 0)
+            {
+                var downloadItems = DownloadList.ToArray();
+                var tasks = new List<Task>();
+                foreach (var downloadItem in downloadItems)
+                {
+                    var cancelTask =
+                        downloadItem.CancelAsync().ContinueWith(task => SetDownloadItemStatusText(downloadItem));
+                    tasks.Add(cancelTask);
+                }
+                Task.WaitAll(tasks.ToArray());
+                Settings.Default.DownloadListXml = XmlTools.Serialize(downloadItems);
+            }
+            else Settings.Default.DownloadListXml = string.Empty;
+            Settings.Default.Save();
+        }
+
+        private async void CancelDownload(DownloadItem item)
+        {
+            var cancelMethod = item?.CancelAsync();
+            if (cancelMethod != null) await cancelMethod;
+        }
+
+        private void DownloadItem_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            var downloadItem = e.Session as DownloadItem;
+            if (downloadItem == null)
+                return;
+
+            if (DateTime.Now - downloadItem.LastStatusUpdateTime > _updateProgressTimeSpan)
+            {
+                SetDownloadItemStatusText(downloadItem);
+                downloadItem.LastStatusUpdateTime = DateTime.Now;
+            }
+        }
+
+        private async void HandleNewVideoDownload(VideoDownloadItem downloadItem)
+        {
+            downloadItem.DownloadProgressChanged += DownloadItem_DownloadProgressChanged;
+            downloadItem.StateChanged += DownloadItem_StateChanged;
+            //downloadItem.DownloadSession.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
+            DownloadList.Add(downloadItem);
+            await StartDownloadAsync(downloadItem);
+        }
+
+        private void DownloadItem_StateChanged(object sender, DownloadSessionStateChangedEventArgs e)
+        {
+            SetDownloadItemStatusText(e.Session as DownloadItem);
+        }
+
+        private async void PauseDownloadItem(DownloadItem downloadItem)
+        {
+            await downloadItem.PauseAsync();
+            SetDownloadItemStatusText(downloadItem);
+        }
+
+        private void RemoveDownloadItem(DownloadItem downloadItem)
+        {
+            if ((downloadItem == null) || !downloadItem.CanBeRemoved) return;
+            DownloadList.Remove(downloadItem);
+            CompletedList.Remove(downloadItem);
+        }
+
 
         private void SetDesignMode()
         {
@@ -115,8 +199,8 @@ namespace VIDEOwnloader.ViewModel
                                     DestinationPath = "test." + (x.Ext ?? "mp4"),
                                     Video = x,
                                     VideoFormat = x.Formats[random.Next(0, x.Formats.Length - 1)],
-                                    DownloadedBytes = (uint)(random.NextDouble()*4 + 2)*1048576,
-                                    TotalBytes = (uint)(random.NextDouble()*10 + 8)*1048576,
+                                    DownloadedBytes = (uint)(random.NextDouble() * 4 + 2) * 1048576,
+                                    TotalBytes = (uint)(random.NextDouble() * 10 + 8) * 1048576,
                                     State = DownloadState.Downloading
                                 }));
 
@@ -136,69 +220,11 @@ namespace VIDEOwnloader.ViewModel
             });
         }
 
-        ~DownloadsViewModel()
-        {
-            Settings.Default.CompletedListXml = CompletedList.Count > 0
-                ? XmlTools.Serialize(CompletedList.ToArray())
-                : string.Empty;
-
-            if (DownloadList.Count > 0)
-            {
-                var downloadItems = DownloadList.ToArray();
-                foreach (var downloadItem in downloadItems)
-                {
-                    downloadItem.CancelAsync();
-                    SetDownloadItemStatusText(downloadItem);
-                }
-                Settings.Default.DownloadListXml = XmlTools.Serialize(downloadItems);
-            }
-            else Settings.Default.DownloadListXml = string.Empty;
-            Settings.Default.Save();
-        }
-
-        private void CancelDownload(DownloadItem item)
-        {
-            item?.CancelAsync();
-        }
-
-        private async void HandleNewVideoDownload(VideoDownloadItem downloadItem)
-        {
-            downloadItem.DownloadProgressChanged += DownloadItem_DownloadProgressChanged;
-            //downloadItem.DownloadSession.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
-            DownloadList.Add(downloadItem);
-            await downloadItem.DownloadAsync();
-
-            if (downloadItem.State == DownloadState.Success)
-            {
-                DownloadList.Remove(downloadItem);
-                CompletedList.Add(downloadItem);
-            }
-            // TODO: failures handling
-            SetDownloadItemStatusText(downloadItem);
-        }
-
-        private void DownloadItem_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            var downloadItem = e.Session as DownloadItem;
-            if (downloadItem == null)
-                return;
-
-            if (DateTime.Now - downloadItem.LastStatusUpdateTime > _updateProgressTimeSpan)
-            {
-                SetDownloadItemStatusText(downloadItem);
-                downloadItem.LastStatusUpdateTime = DateTime.Now;
-            }
-        }
-
-        private void RemoveDownloadItem(DownloadItem item)
-        {
-            if ((item == null) || !item.CanBeRemoved) return;
-            DownloadList.Remove(item);
-            CompletedList.Remove(item);
-        }
-
         private void SetDownloadItemStatusText(DownloadItem downloadItem)
         {
+            if (downloadItem == null)
+                throw new ArgumentNullException(nameof(downloadItem));
+
             var statusText = string.Empty;
             //if (downloadItem.ErrorText != null)
             //{
@@ -212,7 +238,7 @@ namespace VIDEOwnloader.ViewModel
                     break;
                 case DownloadState.Downloading:
                     var progressText =
-                        $"{downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
+                        $"{downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
                     if (downloadItem.EtaCalculator == null)
                         statusText = progressText;
                     else if (downloadItem.EtaCalculator.EtaIsAvailable)
@@ -223,10 +249,15 @@ namespace VIDEOwnloader.ViewModel
                     break;
                 case DownloadState.Paused:
                     statusText =
-                        $"Paused, {downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
+                        $"Paused, {downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
                     break;
                 case DownloadState.Cancelled:
                     statusText = "Cancelled";
+                    break;
+                case DownloadState.Failed:
+                    statusText = downloadItem.Error == null
+                        ? "Failed!"
+                        : $"Error: {downloadItem.Error.GetFullMessage()}";
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -239,6 +270,22 @@ namespace VIDEOwnloader.ViewModel
         {
             var view = new NewDownloadDialog();
             await DialogHost.Show(view, "RootDialog");
+        }
+
+        private async Task StartDownloadAsync(DownloadItem downloadItem)
+        {
+            await downloadItem.DownloadAsync(false);
+
+            if (downloadItem.State != DownloadState.Paused)
+            {
+                DownloadList.Remove(downloadItem);
+                CompletedList.Add(downloadItem);
+            }
+        }
+
+        private async void UnpauseDownloadItem(DownloadItem downloadItem)
+        {
+            await StartDownloadAsync(downloadItem);
         }
     }
 }

@@ -1,4 +1,24 @@
-﻿using System;
+﻿#region License
+
+// VIDEOwnloader
+// Copyright (C) 2016 Adam Rutkowski
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#endregion
+
+using System;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -20,58 +40,44 @@ namespace VIDEOwnloader.Common.Downloader
         private long _downloadedBytes;
         private Task _downloadTask;
         private DateTime? _lastRequestDate;
+        private bool _pauseRequested;
         private DownloadState? _requestedState;
         private DownloadState _state;
         private long _totalBytes;
 
         public DownloadSession(Uri source, string targetFileName)
+            : this()
         {
-            Source = source;
+            Source = source.ToString();
             TargetFileName = targetFileName;
+        }
 
+        protected DownloadSession()
+        {
             _state = DownloadState.Ready;
         }
+
+        [XmlIgnore]
+        public bool CanBeCancelled => (State == DownloadState.Downloading) || (State == DownloadState.Paused);
 
         public bool CanBePaused
         {
             get { return _canBePaused; }
-            private set { Set(ref _canBePaused, value); }
+            set { Set(ref _canBePaused, value); }
         }
 
         public long DownloadedBytes
         {
             get { return _downloadedBytes; }
-            private set
+            set
             {
                 Set(ref _downloadedBytes, value);
                 RaisePropertyChanged(() => ProgressValue);
             }
         }
 
-        public long TotalBytes
-        {
-            get { return _totalBytes; }
-            private set
-            {
-                Set(ref _totalBytes, value);
-                RaisePropertyChanged(() => ProgressValue);
-            }
-        }
-
-        public DownloadState State
-        {
-            get { return _state; }
-            private set
-            {
-                var oldState = _state;
-                Set(ref _state, value);
-                OnStateChanged(oldState, _state);
-                RaisePropertyChanged(() => CanBeCancelled);
-            }
-        }
-
         [XmlIgnore]
-        public bool CanBeCancelled => (State == DownloadState.Downloading) || (State == DownloadState.Paused);
+        public Exception Error { get; set; }
 
         [XmlIgnore]
         public IEtaCalculator EtaCalculator { get; } = new EtaCalculator(2, 15);
@@ -82,21 +88,49 @@ namespace VIDEOwnloader.Common.Downloader
         [XmlIgnore]
         public float ProgressValue => (float)DownloadedBytes / TotalBytes;
 
-        public Uri Source { get; }
-        public string TargetFileName { get; }
+        public string Source { get; set; }
 
-        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
-        public event DownloadSessionStateChangedEventHandler StateChanged;
+        public DownloadState State
+        {
+            get { return _state; }
+            set
+            {
+                var oldState = _state;
+                Set(ref _state, value);
+                OnStateChanged(oldState, _state);
+                RaisePropertyChanged(() => CanBeCancelled);
+            }
+        }
 
-        public async Task DownloadAsync()
+        public string TargetFileName { get; set; }
+
+        public long TotalBytes
+        {
+            get { return _totalBytes; }
+            set
+            {
+                Set(ref _totalBytes, value);
+                RaisePropertyChanged(() => ProgressValue);
+            }
+        }
+
+        public async Task CancelAsync()
+        {
+            if (!CanBeCancelled) return;
+
+            if (!_cancellationTokenSource.IsCancellationRequested)
+                _cancellationTokenSource.Cancel();
+            await _downloadTask;
+        }
+
+        public async Task DownloadAsync(bool throwOnFailure = true)
         {
             if ((_downloadTask != null) && !_downloadTask.IsCompleted)
                 throw new InvalidOperationException(
                     $"Download already in progress; use new {nameof(DownloadSession)} or invoke {nameof(CancelAsync)}");
 
             _cancellationTokenSource = new CancellationTokenSource();
-            _downloadTask = DownloadAsyncInternal(_cancellationTokenSource.Token);
-            await _downloadTask.ContinueWith(task =>
+            _downloadTask = DownloadAsyncInternal(_cancellationTokenSource.Token).ContinueWith(task =>
             {
                 if (_requestedState.HasValue)
                 {
@@ -105,10 +139,11 @@ namespace VIDEOwnloader.Common.Downloader
                 }
                 else if (task.IsCanceled)
                 {
-                    State = DownloadState.Cancelled;
+                    State = _pauseRequested ? DownloadState.Paused : DownloadState.Cancelled;
                 }
                 else if (task.IsFaulted)
                 {
+                    Error = task.Exception?.InnerException;
                     State = DownloadState.Failed;
                 }
                 else
@@ -116,23 +151,46 @@ namespace VIDEOwnloader.Common.Downloader
                     State = DownloadState.Success;
                 }
 
-                if (task.Exception == null) return;
-                if (File.Exists(PartFilename))
-                    File.Delete(PartFilename);
-                if (File.Exists(TargetFileName))
-                    File.Delete(TargetFileName);
-                throw task.Exception;
+                if (State != DownloadState.Paused)
+                {
+                    CanBePaused = false;
+
+                    if (File.Exists(PartFilename))
+                        File.Delete(PartFilename);
+
+                    if (State != DownloadState.Success && File.Exists(TargetFileName))
+                        File.Delete(TargetFileName);
+                }
+
+                if (throwOnFailure && task.Exception?.InnerException != null)
+                    throw task.Exception.InnerException;
             });
+            await _downloadTask;
         }
+
+        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+
+        public async Task PauseAsync()
+        {
+            if (!CanBePaused || (State != DownloadState.Downloading)) return;
+            _pauseRequested = true;
+
+            if (!_cancellationTokenSource.IsCancellationRequested)
+                _cancellationTokenSource.Cancel();
+            await _downloadTask;
+        }
+
+        public event DownloadSessionStateChangedEventHandler StateChanged;
 
 
         private async Task DownloadAsyncInternal(CancellationToken ct)
         {
             var headRequest = WebRequest.CreateHttp(Source);
             headRequest.Method = "HEAD";
+            headRequest.AllowAutoRedirect = false;
 
-            var canContinue = (State == DownloadState.Paused) && _lastRequestDate.HasValue;
-            if (canContinue)
+            var tryResume = State == DownloadState.Paused && _lastRequestDate.HasValue;
+            if (tryResume)
                 headRequest.IfModifiedSince = _lastRequestDate.Value;
 
             State = DownloadState.Downloading;
@@ -141,9 +199,9 @@ namespace VIDEOwnloader.Common.Downloader
             // Send HEAD to investigate the headers and prepare proper GET request
             using (var response = (HttpWebResponse)await headRequest.GetResponseAsync())
             {
-                if ((response.StatusCode == HttpStatusCode.NotModified) ||
-                    (canContinue && (response.LastModified != default(DateTime)) &&
-                     (response.LastModified < _lastRequestDate.Value)))
+                if (tryResume && (response.StatusCode == HttpStatusCode.NotModified ||
+                    (response.LastModified != default(DateTime) &&
+                     response.LastModified < _lastRequestDate.Value)))
                 {
                     var partFileInfo = new FileInfo(PartFilename);
                     if (partFileInfo.Exists)
@@ -198,35 +256,6 @@ namespace VIDEOwnloader.Common.Downloader
                 }
                 File.Move(PartFilename, TargetFileName);
             }
-            State = DownloadState.Success;
-        }
-
-        public async Task PauseAsync()
-        {
-            if (!CanBePaused || (State != DownloadState.Downloading)) return;
-
-            if (!_requestedState.HasValue)
-                _requestedState = DownloadState.Paused;
-
-            if (!_cancellationTokenSource.IsCancellationRequested)
-                _cancellationTokenSource.Cancel();
-            await Task.WhenAll(_downloadTask);
-        }
-
-        public async Task CancelAsync()
-        {
-            if (!CanBeCancelled) return;
-
-            if (!_requestedState.HasValue)
-                _requestedState = DownloadState.Cancelled;
-
-            if (!_cancellationTokenSource.IsCancellationRequested)
-                _cancellationTokenSource.Cancel();
-            await _downloadTask.ContinueWith((task, o) =>
-            {
-                if (File.Exists(PartFilename))
-                    File.Delete(PartFilename);
-            }, null);
         }
 
         private void OnDownloadProgressChanged()
