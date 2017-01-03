@@ -56,7 +56,7 @@ namespace VIDEOwnloader.Base.Video
         public string Extension { get; set; }
 
         [JsonProperty("filesize")]
-        public int Filesize { get; set; }
+        public long Filesize { get; set; }
 
         [JsonProperty("format")]
         public string Format { get; set; }

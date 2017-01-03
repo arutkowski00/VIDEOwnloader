@@ -117,9 +117,16 @@ namespace VIDEOwnloader.Common.Downloader
         public async Task CancelAsync()
         {
             if (!CanBeCancelled) return;
+            _pauseRequested = false;
 
-            if (!_cancellationTokenSource.IsCancellationRequested)
+            if (State == DownloadState.Paused)
+            {
+                ResetDownload();
+                State = DownloadState.Cancelled;
+            }
+            else if (!_cancellationTokenSource.IsCancellationRequested)
                 _cancellationTokenSource.Cancel();
+
             await _downloadTask;
         }
 
@@ -132,14 +139,10 @@ namespace VIDEOwnloader.Common.Downloader
             _cancellationTokenSource = new CancellationTokenSource();
             _downloadTask = DownloadAsyncInternal(_cancellationTokenSource.Token).ContinueWith(task =>
             {
-                if (_requestedState.HasValue)
-                {
-                    State = _requestedState.Value;
-                    _requestedState = null;
-                }
-                else if (task.IsCanceled)
+                if (task.IsCanceled)
                 {
                     State = _pauseRequested ? DownloadState.Paused : DownloadState.Cancelled;
+                    _pauseRequested = false;
                 }
                 else if (task.IsFaulted)
                 {
@@ -153,16 +156,13 @@ namespace VIDEOwnloader.Common.Downloader
 
                 if (State != DownloadState.Paused)
                 {
-                    CanBePaused = false;
+                    ResetDownload();
 
-                    if (File.Exists(PartFilename))
-                        File.Delete(PartFilename);
-
-                    if (State != DownloadState.Success && File.Exists(TargetFileName))
+                    if ((State != DownloadState.Success) && File.Exists(TargetFileName))
                         File.Delete(TargetFileName);
                 }
 
-                if (throwOnFailure && task.Exception?.InnerException != null)
+                if (throwOnFailure && (task.Exception?.InnerException != null))
                     throw task.Exception.InnerException;
             });
             await _downloadTask;
@@ -189,7 +189,7 @@ namespace VIDEOwnloader.Common.Downloader
             headRequest.Method = "HEAD";
             headRequest.AllowAutoRedirect = false;
 
-            var tryResume = State == DownloadState.Paused && _lastRequestDate.HasValue;
+            var tryResume = (State == DownloadState.Paused) && _lastRequestDate.HasValue;
             if (tryResume)
                 headRequest.IfModifiedSince = _lastRequestDate.Value;
 
@@ -199,9 +199,9 @@ namespace VIDEOwnloader.Common.Downloader
             // Send HEAD to investigate the headers and prepare proper GET request
             using (var response = (HttpWebResponse)await headRequest.GetResponseAsync())
             {
-                if (tryResume && (response.StatusCode == HttpStatusCode.NotModified ||
-                    (response.LastModified != default(DateTime) &&
-                     response.LastModified < _lastRequestDate.Value)))
+                if (tryResume && ((response.StatusCode == HttpStatusCode.NotModified) ||
+                                  ((response.LastModified != default(DateTime)) &&
+                                   (response.LastModified < _lastRequestDate.Value))))
                 {
                     var partFileInfo = new FileInfo(PartFilename);
                     if (partFileInfo.Exists)
@@ -266,6 +266,14 @@ namespace VIDEOwnloader.Common.Downloader
         private void OnStateChanged(DownloadState oldState, DownloadState newState)
         {
             StateChanged?.Invoke(this, new DownloadSessionStateChangedEventArgs(this, oldState, newState));
+        }
+
+        private void ResetDownload()
+        {
+            CanBePaused = false;
+
+            if (File.Exists(PartFilename))
+                File.Delete(PartFilename);
         }
     }
 }

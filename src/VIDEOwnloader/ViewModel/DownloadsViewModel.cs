@@ -157,18 +157,34 @@ namespace VIDEOwnloader.ViewModel
             }
         }
 
+        private void DownloadItem_StateChanged(object sender, DownloadSessionStateChangedEventArgs e)
+        {
+            var downloadItem = e.Session as DownloadItem;
+            if (downloadItem == null) return;
+
+            if (((e.OldState == DownloadState.Downloading) || (e.OldState == DownloadState.Paused) ||
+                 (e.OldState == DownloadState.Ready)) &&
+                ((e.NewState == DownloadState.Cancelled) || (e.NewState == DownloadState.Failed) ||
+                 (e.NewState == DownloadState.Success)))
+            {
+                DownloadList.Remove(downloadItem);
+                CompletedList.Add(downloadItem);
+            }
+            else if (CompletedList.Contains(downloadItem))
+            {
+                CompletedList.Remove(downloadItem);
+                DownloadList.Add(downloadItem);
+            }
+            SetDownloadItemStatusText(downloadItem);
+        }
+
         private async void HandleNewVideoDownload(VideoDownloadItem downloadItem)
         {
             downloadItem.DownloadProgressChanged += DownloadItem_DownloadProgressChanged;
             downloadItem.StateChanged += DownloadItem_StateChanged;
             //downloadItem.DownloadSession.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
             DownloadList.Add(downloadItem);
-            await StartDownloadAsync(downloadItem);
-        }
-
-        private void DownloadItem_StateChanged(object sender, DownloadSessionStateChangedEventArgs e)
-        {
-            SetDownloadItemStatusText(e.Session as DownloadItem);
+            await downloadItem.DownloadAsync(false);
         }
 
         private async void PauseDownloadItem(DownloadItem downloadItem)
@@ -199,8 +215,8 @@ namespace VIDEOwnloader.ViewModel
                                     DestinationPath = "test." + (x.Ext ?? "mp4"),
                                     Video = x,
                                     VideoFormat = x.Formats[random.Next(0, x.Formats.Length - 1)],
-                                    DownloadedBytes = (uint)(random.NextDouble() * 4 + 2) * 1048576,
-                                    TotalBytes = (uint)(random.NextDouble() * 10 + 8) * 1048576,
+                                    DownloadedBytes = (uint)(random.NextDouble()*4 + 2)*1048576,
+                                    TotalBytes = (uint)(random.NextDouble()*10 + 8)*1048576,
                                     State = DownloadState.Downloading
                                 }));
 
@@ -238,7 +254,7 @@ namespace VIDEOwnloader.ViewModel
                     break;
                 case DownloadState.Downloading:
                     var progressText =
-                        $"{downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
+                        $"{downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
                     if (downloadItem.EtaCalculator == null)
                         statusText = progressText;
                     else if (downloadItem.EtaCalculator.EtaIsAvailable)
@@ -246,11 +262,11 @@ namespace VIDEOwnloader.ViewModel
                     else statusText = progressText + ", estimating time...";
                     break;
                 case DownloadState.Success:
-                    statusText = downloadItem.StatusText;
+                    statusText = downloadItem.DownloadCompletedStatusText;
                     break;
                 case DownloadState.Paused:
                     statusText =
-                        $"Paused, {downloadItem.DownloadedBytes / MegabytesMultiplier:F1}/{downloadItem.TotalBytes / MegabytesMultiplier:F1} MB";
+                        $"Paused, {downloadItem.DownloadedBytes/MegabytesMultiplier:F1}/{downloadItem.TotalBytes/MegabytesMultiplier:F1} MB";
                     break;
                 case DownloadState.Cancelled:
                     statusText = "Cancelled";
@@ -273,20 +289,9 @@ namespace VIDEOwnloader.ViewModel
             await DialogHost.Show(view, "RootDialog");
         }
 
-        private async Task StartDownloadAsync(DownloadItem downloadItem)
-        {
-            await downloadItem.DownloadAsync(false);
-
-            if (downloadItem.State != DownloadState.Paused)
-            {
-                DownloadList.Remove(downloadItem);
-                CompletedList.Add(downloadItem);
-            }
-        }
-
         private async void UnpauseDownloadItem(DownloadItem downloadItem)
         {
-            await StartDownloadAsync(downloadItem);
+            await downloadItem.DownloadAsync(false);
         }
     }
 }
