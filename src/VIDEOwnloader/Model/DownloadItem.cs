@@ -63,8 +63,6 @@ namespace VIDEOwnloader.Model
         {
         }
 
-        public override string DownloadCompletedStatusText => $"Saved as {Path.GetFileName(TargetFileName)}";
-
         public Video Video { get; set; }
 
         public VideoFormat VideoFormat { get; set; }
@@ -90,8 +88,7 @@ namespace VIDEOwnloader.Model
         public bool CanBeRemoved => IsCanceled || IsDownloaded || IsFailed;
 
         [XmlIgnore]
-        public virtual string DownloadCompletedStatusText => $"Saved in {Path.GetFullPath(TargetFileName)}";
-
+        public virtual string DownloadCompletedStatusText => $"Saved as {Path.GetFileName(TargetFileName)}";
 
         [XmlIgnore]
         public bool IsCanceled => State == DownloadState.Cancelled;

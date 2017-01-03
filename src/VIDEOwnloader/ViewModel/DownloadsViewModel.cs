@@ -246,6 +246,7 @@ namespace VIDEOwnloader.ViewModel
                     else statusText = progressText + ", estimating time...";
                     break;
                 case DownloadState.Success:
+                    statusText = downloadItem.StatusText;
                     break;
                 case DownloadState.Paused:
                     statusText =

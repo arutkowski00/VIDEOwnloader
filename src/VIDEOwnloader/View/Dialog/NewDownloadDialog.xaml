@@ -75,7 +75,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock x:Name="title" Grid.Row="0"
                                    Style="{DynamicResource MaterialDesignSubheadingTextBlock}"
-                                   Text="{Binding Title}" TextTrimming="WordEllipsis" />
+                                   Text="{Binding Title}" TextTrimming="WordEllipsis" FontWeight="Bold" />
                         <TextBlock x:Name="uploader" Grid.Row="1" Foreground="DimGray" TextTrimming="WordEllipsis">
                             <Hyperlink NavigateUri="{Binding UploaderUrl}" ToolTip="Go to uploader's site"
                                        TextDecorations="{x:Null}">
